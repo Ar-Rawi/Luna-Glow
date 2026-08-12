@@ -1,0 +1,122 @@
+[
+  {
+    "id": "seabass",
+    "name": "European Seabass (Spigola / Branzino / Loup de mer)",
+    "scientificName": "Dicentrarchus labrax",
+    "peakMonths": [0, 1, 9, 10, 11],
+    "seasonCategory": "❄️ Winter & 🍂 Autumn Peak",
+    "depth": "1m – 20m",
+    "depthCategory": "shallow",
+    "idealSST": "14°C – 18°C",
+    "tactics": "Target white-water surf zones and harbor mouths during Mistral (NW) winds. Use 120mm minnow plugs, live prawns, or soft plastic paddle tails on slow retrieves.",
+    "rigging": "20lb Braid + 25lb Fluorocarbon Leader | #1/0 Live Bait Hook | Carolina Running Sinker Rig"
+  },
+  {
+    "id": "seabream",
+    "name": "Gilthead Seabream (Orata / Dorade)",
+    "scientificName": "Sparus aurata",
+    "peakMonths": [4, 5, 6, 7, 8, 9],
+    "seasonCategory": "☀️ Summer & 🌸 Spring Peak",
+    "depth": "2m – 25m",
+    "depthCategory": "reef",
+    "idealSST": "18°C – 24°C",
+    "tactics": "Target Posidonia seagrass margins and shellfish beds. Skittish bottom feeder with crushing jaws. Best fished on Full Moon nights with live shore crabs, bibi worms, or fresh mussels.",
+    "rigging": "15lb Mono + 20lb Clear Leader | #2 Chinu Hook | Inline Sliding Sinker Rig"
+  },
+  {
+    "id": "amberjack",
+    "name": "Greater Amberjack (Ricciola)",
+    "scientificName": "Seriola dumerili",
+    "peakMonths": [8, 9, 10],
+    "seasonCategory": "🍂 Autumn GOLDEN SEASON Peak",
+    "depth": "20m – 100m",
+    "depthCategory": "deep",
+    "idealSST": "19°C – 23°C",
+    "tactics": "High-speed pack hunter on seamounts and offshore wrecks. Deep vertical metal jigging (150g–250g) or live squid trolling during Solunar Moon Overhead periods.",
+    "rigging": "65lb Braid + 80lb Fluorocarbon Leader (FG Knot) | #7/0 Live Squid Hook | Deep Vertical Jigging / Trolling Rig"
+  },
+  {
+    "id": "dentex",
+    "name": "Common Dentex (Dentice)",
+    "scientificName": "Dentex dentex",
+    "peakMonths": [4, 5, 8, 9],
+    "seasonCategory": "🌸 Spring & 🍂 Autumn Peak",
+    "depth": "15m – 50m",
+    "depthCategory": "deep",
+    "idealSST": "17°C – 21°C",
+    "tactics": "The 'King of the Mediterranean Reef'. Solitary apex hunter on steep rocky pinnacles. Slow-troll live squid or octopus near bottom structure.",
+    "rigging": "50lb Braid + 60lb Hard Leader | Double #5/0 Octopus Hooks | Live Squid Slow-Troll Rig"
+  },
+  {
+    "id": "bluefin-tuna",
+    "name": "Atlantic Bluefin Tuna (Tonno Rosso)",
+    "scientificName": "Thunnus thynnus",
+    "peakMonths": [5, 6, 7, 8, 9, 10],
+    "seasonCategory": "☀️ Summer & 🍂 Autumn Peak",
+    "depth": "Surface – 200m",
+    "depthCategory": "deep",
+    "idealSST": "20°C – 26°C",
+    "tactics": "Massive pelagic predator. Drift chumming ('Drifting') with sardines or surface popping into boiling feeding frenzies ('Mangianze').",
+    "rigging": "80lb-100lb Braid + 100lb Leader | #8/0 Circle Hook | Sardine Drifting / Popper Heavy Rig"
+  },
+  {
+    "id": "mahi-mahi",
+    "name": "Mahi-Mahi / Dolphinfish (Lampuga / Cannizzo)",
+    "scientificName": "Coryphaena hippurus",
+    "peakMonths": [7, 8, 9, 10],
+    "seasonCategory": "🍂 Late Summer & Autumn Peak",
+    "depth": "Surface – 30m",
+    "depthCategory": "reef",
+    "idealSST": "22°C – 26°C",
+    "tactics": "Targets floating FADs ('Cannizzi') and debris. Light tackle trolling with feathers, small skirts, or live silversides.",
+    "rigging": "30lb Braid + 40lb Leader | #3/0 Trolling Hook | Feather Skirt Trolling Rig"
+  },
+  {
+    "id": "bluefish",
+    "name": "Bluefish (Serra / Anchoa)",
+    "scientificName": "Pomatomus saltatrix",
+    "peakMonths": [6, 7, 8, 9, 10],
+    "seasonCategory": "☀️ Summer & 🍂 Autumn Peak",
+    "depth": "Surface – 15m",
+    "depthCategory": "shallow",
+    "idealSST": "20°C – 26°C",
+    "tactics": "Razor-sharp teeth predator in coastal bays and river mouths. Use topwater needlefish plugs, poppers, or wire-leader live bait rigs.",
+    "rigging": "30lb Braid + 30lb Single Strand Wire Leader | #2/0 Treble Hook | Topwater Needlefish Plug Rig"
+  },
+  {
+    "id": "leerfish",
+    "name": "Leerfish / Garrick (Leccia Amia)",
+    "scientificName": "Lichia amia",
+    "peakMonths": [4, 5, 6, 7, 8, 9],
+    "seasonCategory": "🌸 Spring to 🍂 Autumn Peak",
+    "depth": "1m – 30m",
+    "depthCategory": "shallow",
+    "idealSST": "19°C – 25°C",
+    "tactics": "Large coastal predator lurking in river estuaries and beach breakers. Fast topwater popping or live mullet trolling.",
+    "rigging": "40lb Braid + 50lb Leader | #4/0 Live Mullet Hook | Live Bait Trolling Rig"
+  },
+  {
+    "id": "white-seabream",
+    "name": "White Seabream (Sarago Maggiore)",
+    "scientificName": "Diplodus sargus",
+    "peakMonths": [3, 4, 5, 6, 7, 8, 9],
+    "seasonCategory": "🌸 Spring & ☀️ Summer Peak",
+    "depth": "1m – 30m",
+    "depthCategory": "shallow",
+    "idealSST": "17°C – 24°C",
+    "tactics": "Heavy surf and rocky ledges. Light rock fishing (LRF) or bottom float fishing with sea worms and shrimp.",
+    "rigging": "10lb Braid + 12lb Fluorocarbon Leader | #4 Worm Hook | LRF Micro Sinker Rig"
+  },
+  {
+    "id": "squid",
+    "name": "European Squid (Calamaro)",
+    "scientificName": "Loligo vulgaris",
+    "peakMonths": [9, 10, 11, 0, 1, 2],
+    "seasonCategory": "❄️ Winter Night Peak",
+    "depth": "5m – 50m",
+    "depthCategory": "reef",
+    "idealSST": "13°C – 17°C",
+    "tactics": "Winter Night Peak! Lighted harbor piers or slow boat drift using Egi squid jigs (size 2.5–3.5).",
+    "rigging": "12lb Braid + 16lb Fluorocarbon Leader | Size 3.0 Egi Jig | Slow Driftegi Rig"
+  }
+]

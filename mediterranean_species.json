@@ -1,0 +1,46 @@
+[
+  {
+    "id": "seabass",
+    "name": "European Seabass (Spigola / Branzino)",
+    "scientificName": "Dicentrarchus labrax",
+    "image": "assets/species/seabass.png",
+    "bestSeason": "Autumn & Winter (Oct – Feb)",
+    "idealTemp": "14°C – 18°C",
+    "habitat": "Shallow rocky shores, harbor mouths, surf zones",
+    "bestBait": "Live prawns, live mullet, 120mm minnow plugs",
+    "description": "Sleek silver ambush predator of the Mediterranean. Thrives in white water created by Mistral winds along rocky shores. Focus fishing during dawn/dusk Solunar transitions."
+  },
+  {
+    "id": "seabream",
+    "name": "Gilthead Seabream (Orata)",
+    "scientificName": "Sparus aurata",
+    "image": "assets/species/seabream.png",
+    "bestSeason": "Late Spring to Autumn (May – Oct)",
+    "idealTemp": "18°C – 24°C",
+    "habitat": "Sandy bays, Posidonia seagrass, shellfish beds",
+    "bestBait": "Live beach crabs, bibi worms, fresh mussels",
+    "description": "Famous for the golden bar between its eyes and crushing jaws. Highly cautious bottom feeder. Best targeted on Full Moon nights using crab baits on fine fluorocarbon leaders."
+  },
+  {
+    "id": "amberjack",
+    "name": "Greater Amberjack (Ricciola)",
+    "scientificName": "Seriola dumerili",
+    "image": "assets/species/amberjack.png",
+    "bestSeason": "Autumn (Sep – Nov) — GOLDEN SEASON",
+    "idealTemp": "19°C – 23°C",
+    "habitat": "Deep underwater pinnacles, drop-offs (30m–100m)",
+    "bestBait": "Live squid, live garfish, 150g–250g vertical jigs",
+    "description": "The ultimate power predator of Mediterranean deep reefs. Hunts in packs near capes and seamounts. Solunar Major Overhead periods trigger ferocious surface & mid-water strikes."
+  },
+  {
+    "id": "dentex",
+    "name": "Common Dentex (Dentice)",
+    "scientificName": "Dentex dentex",
+    "image": "assets/species/dentex.png",
+    "bestSeason": "Spring (May – Jun) & Autumn (Sep – Oct)",
+    "idealTemp": "17°C – 21°C",
+    "habitat": "Steep rocky cliffs, deep bommies (15m–50m)",
+    "bestBait": "Live octopus, live squid, slow pitch jigs",
+    "description": "The 'King of the Mediterranean Reef'. Recognizable by its metallic blue/pink body and sharp canine teeth. Striking with immense force, it requires heavy tackle and instant hooksets."
+  }
+]

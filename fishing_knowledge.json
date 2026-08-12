@@ -1,0 +1,65 @@
+[
+  {
+    "id": "solunar-theory",
+    "title": "Solunar Theory & Major/Minor Feeding Windows",
+    "category": "Solunar & Tides",
+    "summary": "Solunar theory proves fish feeding is driven by lunar transit (overhead) and antipode (underfoot) positions.",
+    "details": "Major feeding periods last 2 hours and occur when the Moon is directly Overhead or Underfoot. Minor periods last 1 hour during Moonrise and Moonset. Plan your casts during these exact windows for maximum strikes!"
+  },
+  {
+    "id": "spring-vs-neap",
+    "title": "Spring Tides vs. Neap Tides Breakdown",
+    "category": "Solunar & Tides",
+    "summary": "Full and New Moons create Spring Tides with maximum water velocity—the absolute best fishing days.",
+    "details": "During Spring Tides (Full & New Moon), strong currents flush shrimp and baitfish out of mangrove creeks. Predators stage at channel points to gorge. Neap Tides (Quarter Moons) produce minimal movement and slack water."
+  },
+  {
+    "id": "incoming-tide-tactics",
+    "title": "Incoming Flood Tide Master Strategy",
+    "category": "Tide Mechanics",
+    "summary": "1 to 2 hours before High Tide is the single most productive fishing window for coastal anglers.",
+    "details": "Rushing incoming oceanic water brings cool oxygen and fresh bait onto shallow flats, river mouths, and reef edges. Predators push up shallow to feed. Position your boat or cast up-current so your lure drifts naturally."
+  },
+  {
+    "id": "barramundi-guide",
+    "title": "Barramundi & Seabass Moon Tactics",
+    "category": "Species Guide",
+    "summary": "Best fished around New Moon and Full Moon during the first 2 hours of outgoing tide.",
+    "details": "Barramundi love moving water around snags, rock bars, and mangrove drains. Use 100-120mm deep diving minnows or soft plastics. Pause lure near timber structures."
+  },
+  {
+    "id": "snapper-mangrove-jack",
+    "title": "Snapper & Mangrove Jack Structure Strategy",
+    "category": "Species Guide",
+    "summary": "Target jetties, rock walls, and reefs during low-light Spring Tide hours with heavy leader line.",
+    "details": "Jack and Snapper hit hard and instantly bolt for structure. Use 30lb-50lb fluorocarbon leaders, live prawns, or weedless soft plastics. Strike and pull hard!"
+  },
+  {
+    "id": "giant-trevally-popping",
+    "title": "Giant Trevally (GT) Topwater Popping",
+    "category": "Species Guide",
+    "summary": "Target high velocity current rips at headlands during Solunar Major Overhead periods.",
+    "details": "GTs hunt in turbulent current rips where prey is disoriented. Work 160mm-200mm topwater poppers aggressively to create loud chugs and water sprays."
+  },
+  {
+    "id": "live-baiting-mastery",
+    "title": "Live Prawn & Mullet Rigging Techniques",
+    "category": "Bait & Rigging",
+    "summary": "Hook live prawns through the tail and mullet through nostrils for natural swimming presentation.",
+    "details": "Never pierce the black brain spot on prawns. Use a Carolina running sinker rig so live bait moves naturally with current."
+  },
+  {
+    "id": "fg-knot-guide",
+    "title": "FG Knot & Essential Rigs Masterclass",
+    "category": "Bait & Rigging",
+    "summary": "The FG Knot delivers 100% line strength for joining braid to fluorocarbon leader.",
+    "details": "Essential for big GT, Barramundi, and Snapper. Combine with Palomar Knot for lures to ensure your line never breaks under heavy drag."
+  },
+  {
+    "id": "barometric-pressure",
+    "title": "Barometric Pressure & Pre-Frontal Frenzies",
+    "category": "Weather Factors",
+    "summary": "Rapidly falling barometric pressure right before a storm triggers legendary feeding frenzies.",
+    "details": "Fish sense atmospheric pressure drops and feed voraciously before cold fronts arrive. 1015+ hPa steady pressure provides solid, predictable action."
+  }
+]
