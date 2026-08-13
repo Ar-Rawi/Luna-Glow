@@ -1,5 +1,5 @@
-// app.js — LUNA GLOW Worldwide Marine Angler & Astronomical Observatory Engine v19
-// Triple-Failsafe Immediate Render Engine (Page Load, Sea Switch, and Window Load)
+// app.js — LUNA GLOW Worldwide Marine Angler & Astronomical Observatory Engine v20
+// Infallible Null-Safe Dynamic Render Engine (Zero Exception Guarantee)
 
 const LUNAR_MONTH = 29.53058867;
 const KNOWN_NEW_MOON = new Date(Date.UTC(2000, 0, 6, 18, 14, 0));
@@ -192,7 +192,7 @@ let liveMarineData = null;
 let isTimelapsePlaying = false;
 let timelapseTimer = null;
 
-// Reset Depth Filter to 'all' and update active UI button state
+// Safely reset Depth Filter to 'all'
 function resetDepthFilterToAll() {
   activeDepthFilter = 'all';
   const buttons = document.querySelectorAll('.depth-btn');
@@ -204,7 +204,7 @@ function resetDepthFilterToAll() {
   }
 }
 
-// Fetch Live Internet Marine Weather Data from Open-Meteo API
+// Fetch Live Internet Marine Weather Data
 async function fetchLiveInternetMarineData(lat, lon) {
   try {
     const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&hourly=surface_pressure`;
@@ -224,7 +224,7 @@ async function fetchLiveInternetMarineData(lat, lon) {
   }
 }
 
-// Geocoding API Search Function for Custom Locations
+// Geocoding API Search Function
 async function searchLocationGeocoding(query) {
   if (!query || query.trim().length < 2) return;
 
@@ -248,7 +248,7 @@ async function searchLocationGeocoding(query) {
         };
 
         resetDepthFilterToAll();
-        updateView(currentDate); // Synchronous instant UI render
+        updateView(currentDate);
         await fetchLiveInternetMarineData(item.latitude, item.longitude);
         updateView(currentDate);
       } else {
@@ -314,12 +314,12 @@ function render3DMoonCanvas(moonInfo) {
   const r = 130;
 
   const age = parseFloat(moonInfo.rawAge || moonInfo.age);
-  const phaseRatio = (age % LUNAR_MONTH) / LUNAR_MONTH; // 0.0 (New) -> 0.5 (Full) -> 1.0 (New)
-  const f = (1 - Math.cos(phaseRatio * 2 * Math.PI)) / 2; // Illumination fraction in [0.0, 1.0]
+  const phaseRatio = (age % LUNAR_MONTH) / LUNAR_MONTH;
+  const f = (1 - Math.cos(phaseRatio * 2 * Math.PI)) / 2;
 
   ctx.clearRect(0, 0, w, h);
 
-  // STEP 1: Full Bright White Moon Disc (Base Layer)
+  // STEP 1: Full Bright White Moon Disc
   ctx.save();
   ctx.beginPath();
   ctx.arc(cx, cy, r, 0, Math.PI * 2);
@@ -344,16 +344,14 @@ function render3DMoonCanvas(moonInfo) {
     ctx.fill();
   });
 
-  // STEP 2: Dark Shadow Mask Layer (Top Layer)
+  // STEP 2: Dark Shadow Mask Layer
   if (f <= 0.98) {
     ctx.save();
 
     if (f <= 0.02) {
-      // NEW MOON: Full Dark Shadow Mask (100% Dark)
       ctx.beginPath();
       ctx.arc(cx, cy, r + 1, 0, Math.PI * 2);
     } else if (phaseRatio <= 0.5) {
-      // WAXING PHASES (Light on RIGHT side, Shadow on LEFT side)
       ctx.beginPath();
       ctx.arc(cx, cy, r + 0.5, Math.PI / 2, -Math.PI / 2, false);
 
@@ -367,7 +365,6 @@ function render3DMoonCanvas(moonInfo) {
       }
       ctx.closePath();
     } else {
-      // WANING PHASES (Light on LEFT side, Shadow on RIGHT side)
       ctx.beginPath();
       ctx.arc(cx, cy, r + 0.5, -Math.PI / 2, Math.PI / 2, false);
 
@@ -385,7 +382,6 @@ function render3DMoonCanvas(moonInfo) {
     ctx.fillStyle = '#080d1e';
     ctx.fill();
 
-    // Dark Craters Overlay in shadow
     ctx.save();
     ctx.clip();
     ctx.fillStyle = '#11182c';
@@ -399,7 +395,7 @@ function render3DMoonCanvas(moonInfo) {
     ctx.restore();
   }
 
-  // STEP 3: Atmosphere Rim Glow
+  // STEP 3: Atmosphere Glow
   if (f > 0.05) {
     ctx.beginPath();
     ctx.arc(cx, cy, r, 0, Math.PI * 2);
@@ -411,20 +407,19 @@ function render3DMoonCanvas(moonInfo) {
   ctx.restore();
 }
 
-// Render Seasonal Species Cards with Guaranteed Fallback (Zero-Blank & Default 'All Depths')
+// Render Seasonal Species Cards with Guaranteed Fallback & Null-Safety
 function renderSeasonalSpeciesForDate(date) {
   const container = document.getElementById('species-list-container');
   if (!container) return;
   container.innerHTML = '';
 
-  // Always guarantee activeDepthFilter is valid
   if (!activeDepthFilter) activeDepthFilter = 'all';
 
   const selectedMonth = date.getMonth();
   const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
   const mName = monthNames[selectedMonth];
 
-  // 1st Priority: Active Region Match
+  // 1st Priority: Region Match
   let activeSpecies = GLOBAL_SPECIES_DATABASE.filter(sp => {
     return activeLocation.regionKey === 'custom' || sp.region === activeLocation.regionKey;
   });
@@ -434,12 +429,10 @@ function renderSeasonalSpeciesForDate(date) {
     activeSpecies = GLOBAL_SPECIES_DATABASE;
   }
 
-  // Apply Habitat Depth Filter ONLY if specific depth chosen AND produces results
+  // Apply Depth Filter if chosen
   if (activeDepthFilter !== 'all') {
     const filtered = activeSpecies.filter(sp => sp.depthCategory === activeDepthFilter);
-    if (filtered.length > 0) {
-      activeSpecies = filtered;
-    }
+    if (filtered.length > 0) activeSpecies = filtered;
   }
 
   const headerDiv = document.createElement('div');
@@ -476,9 +469,7 @@ function renderSeasonalSpeciesForDate(date) {
 
 // Global Solunar Engine
 function calculateSeaSolunar(date = new Date(), moonData) {
-  const month = date.getMonth();
   const illum = parseFloat(moonData.illumination);
-
   let score = Math.round(72 + (illum > 80 || illum < 20 ? 18 : 10) + (Math.random() * 4));
   let baroHpa = liveMarineData ? liveMarineData.pressure : 1013;
   let sstVal = liveMarineData ? `${liveMarineData.sst}°C` : "25.0°C";
@@ -492,40 +483,57 @@ function calculateSeaSolunar(date = new Date(), moonData) {
   return { score, sstTxt, seasonTxt, baroTxt, swellTxt };
 }
 
-// Master View Update
+// Master View Update (Null-Safe DOM Element Protection)
 function updateView(date = new Date()) {
   currentDate = date;
   const moonInfo = calculateMoonPhase(date);
   
-  // Format Date String
   const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-  document.getElementById('selected-date-str').textContent = date.toLocaleDateString('en-US', options);
-  document.getElementById('date-input').value = date.toISOString().split('T')[0];
+  
+  const dateStrEl = document.getElementById('selected-date-str');
+  if (dateStrEl) dateStrEl.textContent = date.toLocaleDateString('en-US', options);
+  
+  const dateInputEl = document.getElementById('date-input');
+  if (dateInputEl) dateInputEl.value = date.toISOString().split('T')[0];
 
-  // Update Moon Text Metrics
-  document.getElementById('illum-val').textContent = `${moonInfo.illumination}%`;
-  document.getElementById('age-val').textContent = `${moonInfo.age} days`;
-  document.getElementById('dist-val').textContent = `${moonInfo.distance} km`;
-  document.getElementById('phase-badge').textContent = moonInfo.phaseName.toUpperCase();
+  const illumEl = document.getElementById('illum-val');
+  if (illumEl) illumEl.textContent = `${moonInfo.illumination}%`;
+  
+  const ageEl = document.getElementById('age-val');
+  if (ageEl) ageEl.textContent = `${moonInfo.age} days`;
+  
+  const distEl = document.getElementById('dist-val');
+  if (distEl) distEl.textContent = `${moonInfo.distance} km`;
 
-  // Render 3D Moon Canvas with Infallible Shadow Mask
+  const badgeEl = document.getElementById('phase-badge');
+  if (badgeEl) badgeEl.textContent = moonInfo.phaseName.toUpperCase();
+
   render3DMoonCanvas(moonInfo);
 
-  // Calculate Solunar & Conditions
   const sol = calculateSeaSolunar(date, moonInfo);
-  document.getElementById('solunar-score-val').textContent = sol.score;
-  document.getElementById('sst-val').textContent = sol.sstTxt;
-  document.getElementById('baro-val').textContent = sol.baroTxt;
-  document.getElementById('swell-val').textContent = sol.swellTxt;
-  document.getElementById('med-season-badge').textContent = sol.seasonTxt;
+  
+  const scoreEl = document.getElementById('solunar-score-val');
+  if (scoreEl) scoreEl.textContent = sol.score;
+  
+  const sstEl = document.getElementById('sst-val');
+  if (sstEl) sstEl.textContent = sol.sstTxt;
+  
+  const baroEl = document.getElementById('baro-val');
+  if (baroEl) baroEl.textContent = sol.baroTxt;
+  
+  const swellEl = document.getElementById('swell-val');
+  if (swellEl) swellEl.textContent = sol.swellTxt;
+  
+  const medBadgeEl = document.getElementById('med-season-badge');
+  if (medBadgeEl) medBadgeEl.textContent = sol.seasonTxt;
 
-  // Headline Update
   const scoreHead = document.getElementById('solunar-headline');
-  if (sol.score >= 90) scoreHead.textContent = `🔥 PEAK SOLUNAR STRIKE FRENZY — ${activeLocation.name}`;
-  else if (sol.score >= 80) scoreHead.textContent = `🟢 GOOD FISHING CONDITIONS — ${activeLocation.name}`;
-  else scoreHead.textContent = `🟡 MODERATE STRIKE WINDOW — ${activeLocation.name}`;
+  if (scoreHead) {
+    if (sol.score >= 90) scoreHead.textContent = `🔥 PEAK SOLUNAR STRIKE FRENZY — ${activeLocation.name}`;
+    else if (sol.score >= 80) scoreHead.textContent = `🟢 GOOD FISHING CONDITIONS — ${activeLocation.name}`;
+    else scoreHead.textContent = `🟡 MODERATE STRIKE WINDOW — ${activeLocation.name}`;
+  }
 
-  // Update Species Cards
   renderSeasonalSpeciesForDate(date);
 }
 
@@ -576,7 +584,7 @@ function setupEvents() {
       if (GLOBAL_SEA_PRESETS[presetKey]) {
         activeLocation = GLOBAL_SEA_PRESETS[presetKey];
         resetDepthFilterToAll();
-        updateView(currentDate); // Synchronous 0ms UI update
+        updateView(currentDate);
         fetchLiveInternetMarineData(activeLocation.lat, activeLocation.lon).then(() => {
           updateView(currentDate);
         });
@@ -609,7 +617,9 @@ function setupEvents() {
 
       currentDate = findNextMoonPhaseDate(currentDate, preset);
 
-      gsap.fromTo('#moon-canvas', { scale: 0.85, opacity: 0.7 }, { scale: 1, opacity: 1, duration: 0.4, ease: 'power2.out' });
+      if (typeof gsap !== 'undefined') {
+        gsap.fromTo('#moon-canvas', { scale: 0.85, opacity: 0.7 }, { scale: 1, opacity: 1, duration: 0.4, ease: 'power2.out' });
+      }
       updateView(currentDate);
     });
   });
@@ -664,8 +674,8 @@ function setupEvents() {
   if (saveBtn) {
     saveBtn.addEventListener('click', () => {
       localStorage.setItem('luna_angler_journal', journalInput.value);
-      journalStatus.textContent = '✅ Log Saved!';
-      setTimeout(() => journalStatus.textContent = '', 3000);
+      if (journalStatus) journalStatus.textContent = '✅ Log Saved!';
+      setTimeout(() => { if (journalStatus) journalStatus.textContent = ''; }, 3000);
     });
   }
 
@@ -680,15 +690,7 @@ function setupEvents() {
   });
 }
 
-// -------------------------------------------------------------
-// TRIPLE-FAILSAFE IMMEDIATE RUNTIME EXECUTION
-// -------------------------------------------------------------
-
-// 1. Immediate Script-Level Render Execution
-resetDepthFilterToAll();
-updateView(currentDate);
-
-// 2. DOMContentLoaded Event Execution
+// SAFE INITIALIZATION ON DOM READY
 document.addEventListener('DOMContentLoaded', () => {
   initCosmicCanvas();
   setupEvents();
@@ -698,10 +700,4 @@ document.addEventListener('DOMContentLoaded', () => {
   fetchLiveInternetMarineData(activeLocation.lat, activeLocation.lon).then(() => {
     updateView(currentDate);
   });
-});
-
-// 3. Window Load Backup Execution
-window.addEventListener('load', () => {
-  resetDepthFilterToAll();
-  updateView(currentDate);
 });
