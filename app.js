@@ -695,6 +695,13 @@ function setupEvents() {
     });
   }
 
+function getCycleStartForDate(d) {
+  const diffDays = (d.getTime() - KNOWN_NEW_MOON.getTime()) / (1000 * 60 * 60 * 24);
+  let age = diffDays % LUNAR_MONTH;
+  if (age < 0) age += LUNAR_MONTH;
+  return new Date(d.getTime() - age * 24 * 60 * 60 * 1000);
+}
+
   // 30-Day Timelapse Slider & Play/Pause Button
   const cycleSlider = document.getElementById('cycle-slider');
   const timelapseBtn = document.getElementById('timelapse-btn');
@@ -707,7 +714,8 @@ function setupEvents() {
         if (timelapseBtn) timelapseBtn.textContent = '▶ Play Timelapse';
       }
       const val = parseFloat(e.target.value);
-      const newD = new Date(KNOWN_NEW_MOON.getTime() + val * 24 * 60 * 60 * 1000);
+      const cycleStart = getCycleStartForDate(currentDate);
+      const newD = new Date(cycleStart.getTime() + val * 24 * 60 * 60 * 1000);
       updateView(newD);
     });
   }

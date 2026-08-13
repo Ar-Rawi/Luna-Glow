@@ -503,34 +503,28 @@ body {
   color: #ffffff;
 }
 
-/* Solunar Feeding Periods Grid */
+/* Solunar Feeding Periods Grid & Cards (Mobile Native & Desktop) */
 .feeding-periods-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 1rem;
 }
 
-@media (max-width: 600px) {
-  .feeding-periods-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
 .period-box {
   background: rgba(11, 17, 44, 0.85);
-  border: 1px solid var(--accent-cyan);
-  box-shadow: 0 0 15px rgba(0, 242, 254, 0.1);
-  padding: 1rem 1.2rem;
+  border: 1px solid rgba(0, 242, 254, 0.35);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  padding: 1.1rem 1.2rem;
   border-radius: 16px;
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
-  transition: transform 0.2s ease, border-color 0.2s ease;
+  gap: 0.4rem;
+  transition: transform 0.25s ease, border-color 0.25s ease;
 }
 
 .period-box:hover {
   transform: translateY(-2px);
-  border-color: #ffffff;
+  border-color: var(--accent-cyan);
 }
 
 .period-box.minor {
@@ -539,34 +533,71 @@ body {
   box-shadow: none;
 }
 
-.p-title {
-  font-size: 0.75rem;
-  font-weight: 800;
-  color: var(--accent-gold);
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
+.period-header {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
 }
 
-.period-box.minor .p-title {
-  color: var(--text-muted);
+.period-badge {
+  font-size: 0.68rem;
+  font-weight: 800;
+  padding: 0.2rem 0.55rem;
+  border-radius: 8px;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
+.major-badge {
+  background: rgba(242, 201, 76, 0.18);
+  border: 1px solid var(--accent-gold);
+  color: var(--accent-gold);
+}
+
+.minor-badge {
+  background: rgba(0, 242, 254, 0.12);
+  border: 1px solid var(--accent-cyan);
+  color: var(--accent-cyan);
+}
+
+.p-title {
+  font-family: var(--font-heading);
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #ffffff;
 }
 
 .p-time {
   font-family: var(--font-heading);
-  font-size: 1.25rem;
+  font-size: 1.15rem;
   font-weight: 800;
-  color: #ffffff;
+  color: var(--accent-cyan);
   letter-spacing: 0.5px;
 }
 
 .period-box.minor .p-time {
-  color: var(--accent-cyan);
+  color: #ffffff;
 }
 
 .p-note {
   font-size: 0.75rem;
   color: var(--text-muted);
-  font-weight: 600;
+  font-weight: 500;
+}
+
+@media (max-width: 650px) {
+  .feeding-periods-grid {
+    grid-template-columns: 1fr;
+    gap: 0.8rem;
+  }
+
+  .period-box {
+    padding: 0.9rem 1rem;
+  }
+
+  .p-time {
+    font-size: 1.05rem;
+  }
 }
 
 /* Depth Filter Row */
