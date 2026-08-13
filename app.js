@@ -1,5 +1,5 @@
-// app.js — LUNA GLOW Worldwide Marine Angler & Astronomical Observatory Engine v18
-// Zero-Delay Synchronous Page Load & Automatic 'All Depths' Default Reset Engine
+// app.js — LUNA GLOW Worldwide Marine Angler & Astronomical Observatory Engine v19
+// Triple-Failsafe Immediate Render Engine (Page Load, Sea Switch, and Window Load)
 
 const LUNAR_MONTH = 29.53058867;
 const KNOWN_NEW_MOON = new Date(Date.UTC(2000, 0, 6, 18, 14, 0));
@@ -18,7 +18,7 @@ const GLOBAL_SEA_PRESETS = {
   indian_ocean: { name: "🇿🇦 Indian Ocean & Agulhas Current", lat: -30.0000, lon: 32.0000, regionKey: "indian_ocean" }
 };
 
-// EMBEDDED GLOBAL MARINE SPECIES DATABASE (Synchronous 0ms Availability)
+// EMBEDDED GLOBAL MARINE SPECIES DATABASE
 const GLOBAL_SPECIES_DATABASE = [
   // MEDITERRANEAN
   {
@@ -186,19 +186,22 @@ const GLOBAL_SPECIES_DATABASE = [
 ];
 
 let activeLocation = GLOBAL_SEA_PRESETS.med;
-let activeDepthFilter = 'all'; // Default to 'all' on initial load & region switch
+let activeDepthFilter = 'all';
 let currentDate = new Date();
 let liveMarineData = null;
 let isTimelapsePlaying = false;
 let timelapseTimer = null;
 
-// Helper to reset Depth Filter to 'all'
+// Reset Depth Filter to 'all' and update active UI button state
 function resetDepthFilterToAll() {
   activeDepthFilter = 'all';
-  document.querySelectorAll('.depth-btn').forEach(btn => {
-    if (btn.dataset.depth === 'all') btn.classList.add('active');
-    else btn.classList.remove('active');
-  });
+  const buttons = document.querySelectorAll('.depth-btn');
+  if (buttons && buttons.length > 0) {
+    buttons.forEach(btn => {
+      if (btn.dataset.depth === 'all') btn.classList.add('active');
+      else btn.classList.remove('active');
+    });
+  }
 }
 
 // Fetch Live Internet Marine Weather Data from Open-Meteo API
@@ -245,7 +248,7 @@ async function searchLocationGeocoding(query) {
         };
 
         resetDepthFilterToAll();
-        updateView(currentDate); // Instant 0ms UI update
+        updateView(currentDate); // Synchronous instant UI render
         await fetchLiveInternetMarineData(item.latitude, item.longitude);
         updateView(currentDate);
       } else {
@@ -414,6 +417,9 @@ function renderSeasonalSpeciesForDate(date) {
   if (!container) return;
   container.innerHTML = '';
 
+  // Always guarantee activeDepthFilter is valid
+  if (!activeDepthFilter) activeDepthFilter = 'all';
+
   const selectedMonth = date.getMonth();
   const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
   const mName = monthNames[selectedMonth];
@@ -428,16 +434,18 @@ function renderSeasonalSpeciesForDate(date) {
     activeSpecies = GLOBAL_SPECIES_DATABASE;
   }
 
-  // Apply Habitat Depth Filter (if set to shallow/reef/deep)
+  // Apply Habitat Depth Filter ONLY if specific depth chosen AND produces results
   if (activeDepthFilter !== 'all') {
     const filtered = activeSpecies.filter(sp => sp.depthCategory === activeDepthFilter);
-    if (filtered.length > 0) activeSpecies = filtered;
+    if (filtered.length > 0) {
+      activeSpecies = filtered;
+    }
   }
 
   const headerDiv = document.createElement('div');
   headerDiv.style.cssText = "margin-bottom: 0.8rem; font-size:0.85rem; font-weight:700; color:var(--accent-gold);";
   
-  const depthTag = activeDepthFilter !== 'all' ? ` [${activeDepthFilter.toUpperCase()} HABITAT]` : '';
+  const depthTag = activeDepthFilter !== 'all' ? ` [${activeDepthFilter.toUpperCase()} HABITAT]` : ' [ALL DEPTHS]';
   headerDiv.innerHTML = `🎣 <b>${activeLocation.name.toUpperCase()}${depthTag} — ${activeSpecies.length} Target Species in Season for ${mName}:</b>`;
   container.appendChild(headerDiv);
 
@@ -560,17 +568,17 @@ function initCosmicCanvas() {
 
 // Event Setup
 function setupEvents() {
-  // Global Sea Dropdown Selection (Resets to 'All Depths' & Updates Instantly)
+  // Global Sea Dropdown Selection
   const seaSelect = document.getElementById('global-sea-select');
   if (seaSelect) {
     seaSelect.addEventListener('change', (e) => {
       const presetKey = e.target.value;
       if (GLOBAL_SEA_PRESETS[presetKey]) {
         activeLocation = GLOBAL_SEA_PRESETS[presetKey];
-        resetDepthFilterToAll(); // Reset filter to 'All Depths'
-        updateView(currentDate); // IMMEDIATELY update species list & UI (0ms)!
+        resetDepthFilterToAll();
+        updateView(currentDate); // Synchronous 0ms UI update
         fetchLiveInternetMarineData(activeLocation.lat, activeLocation.lon).then(() => {
-          updateView(currentDate); // Re-update once live weather returns
+          updateView(currentDate);
         });
       }
     });
@@ -644,25 +652,6 @@ function setupEvents() {
     });
   }
 
-  // Timelapse Play/Pause Button
-  const timelapseBtn = document.getElementById('timelapse-btn');
-  if (timelapseBtn) {
-    timelapseBtn.addEventListener('click', () => {
-      if (isTimelapsePlaying) {
-        clearInterval(timelapseTimer);
-        isTimelapsePlaying = false;
-        timelapseBtn.textContent = '▶ Play Timelapse';
-      } else {
-        isTimelapsePlaying = true;
-        timelapseBtn.textContent = '⏸️ Pause';
-        timelapseTimer = setInterval(() => {
-          currentDate = new Date(currentDate.getTime() + 12 * 60 * 60 * 1000);
-          updateView(currentDate);
-        }, 150);
-      }
-    });
-  }
-
   // Catch Journal Save
   const saveBtn = document.getElementById('save-journal-btn');
   const journalInput = document.getElementById('journal-input');
@@ -691,15 +680,28 @@ function setupEvents() {
   });
 }
 
-// Initialize Application (SYNCHRONOUS IMMEDIATE DISPLAY)
+// -------------------------------------------------------------
+// TRIPLE-FAILSAFE IMMEDIATE RUNTIME EXECUTION
+// -------------------------------------------------------------
+
+// 1. Immediate Script-Level Render Execution
+resetDepthFilterToAll();
+updateView(currentDate);
+
+// 2. DOMContentLoaded Event Execution
 document.addEventListener('DOMContentLoaded', () => {
   initCosmicCanvas();
   setupEvents();
   resetDepthFilterToAll();
-  updateView(currentDate); // <--- Synchronously populates species cards at 0ms!
+  updateView(currentDate);
 
-  // Asynchronously fetch live weather in background to update SST/Pressure when ready
   fetchLiveInternetMarineData(activeLocation.lat, activeLocation.lon).then(() => {
     updateView(currentDate);
   });
+});
+
+// 3. Window Load Backup Execution
+window.addEventListener('load', () => {
+  resetDepthFilterToAll();
+  updateView(currentDate);
 });
