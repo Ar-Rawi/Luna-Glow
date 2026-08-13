@@ -1,4 +1,4 @@
-/* styles.css — LUNA GLOW Mobile & Desktop Native Design System (by Aisha) */
+/* styles.css — LUNA GLOW Mobile & Desktop Native Design System (by Aisha & Squad) */
 
 :root {
   --bg-deep: #050814;
@@ -50,7 +50,7 @@ body {
 .app-container {
   max-width: 1350px;
   margin: 0 auto;
-  padding: 1.5rem 2rem 5rem;
+  padding: 1.5rem 2rem 6rem;
 }
 
 /* Header Navbar */
@@ -96,7 +96,7 @@ body {
   display: block;
 }
 
-/* Segmented Control Buttons */
+/* Controls Header */
 .nav-controls {
   display: flex;
   gap: 1rem;
@@ -218,35 +218,27 @@ body {
   padding: 0.35rem 0.85rem;
   border-radius: 20px;
   letter-spacing: 1px;
-  text-transform: uppercase;
 }
 
-.date-display {
-  font-size: 0.85rem;
-  color: var(--text-muted);
-  font-weight: 500;
-}
-
-/* 3D Moon Canvas Container */
+/* Moon Visual Wrapper */
 .moon-visual-wrapper {
   position: relative;
   width: 280px;
   height: 280px;
-  margin: 0.5rem 0 1.5rem;
   display: flex;
   justify-content: center;
   align-items: center;
+  margin: 1rem 0 1.5rem;
 }
 
 .moon-glow-aura {
   position: absolute;
-  width: 240px;
-  height: 240px;
+  width: 280px;
+  height: 280px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(0,242,254,0.3) 0%, rgba(0,0,0,0) 70%);
-  filter: blur(25px);
-  z-index: 1;
-  transition: all 0.6s ease;
+  background: radial-gradient(circle, rgba(0, 242, 254, 0.25) 0%, rgba(5, 8, 20, 0) 70%);
+  pointer-events: none;
+  transition: background 0.8s ease;
 }
 
 .moon-art-container {
@@ -293,7 +285,7 @@ body {
   letter-spacing: 1px;
 }
 
-/* UNIFIED MOON PHASE PRESETS BAR (3 Columns: Full, New, Supermoon) */
+/* UNIFIED MOON PHASE PRESETS BAR */
 .unified-presets-card {
   width: 100%;
   margin-bottom: 1.5rem;
@@ -320,12 +312,6 @@ body {
   gap: 0.6rem;
 }
 
-@media (max-width: 480px) {
-  .presets-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
 .preset-btn {
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid var(--panel-border);
@@ -348,55 +334,50 @@ body {
   border-color: var(--accent-cyan);
   color: #ffffff;
   transform: translateY(-2px);
-  box-shadow: 0 4px 15px var(--panel-glow);
 }
 
-/* Control Panel (Date & Slider) */
-.control-panel {
+.date-controls {
   width: 100%;
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  margin-top: 0.5rem;
 }
 
 .date-picker-row {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.8rem;
-}
-
-.date-picker-row label {
-  font-size: 0.8rem;
-  color: var(--text-muted);
-  font-weight: 600;
+  gap: 0.6rem;
+  width: 100%;
 }
 
 .glass-input {
   background: rgba(5, 8, 20, 0.6);
   border: 1px solid var(--panel-border);
+  border-radius: 12px;
   color: #ffffff;
-  padding: 0.45rem 0.75rem;
-  border-radius: 10px;
+  padding: 0.6rem 0.8rem;
   font-family: var(--font-body);
   font-size: 0.85rem;
+  outline: none;
+  flex: 1;
 }
 
 .glass-btn-sm {
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid var(--panel-border);
-  color: var(--text-main);
-  padding: 0.45rem 0.85rem;
-  border-radius: 10px;
-  font-size: 0.8rem;
+  background: rgba(0, 242, 254, 0.12);
+  border: 1px solid var(--accent-cyan);
+  color: var(--accent-cyan);
+  font-family: var(--font-body);
   font-weight: 600;
+  font-size: 0.82rem;
+  padding: 0.6rem 1rem;
+  border-radius: 12px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.25s ease;
 }
 
 .glass-btn-sm:hover {
-  background: rgba(0, 242, 254, 0.2);
-  border-color: var(--accent-cyan);
+  background: var(--accent-cyan);
+  color: #000000;
 }
 
 .slider-row {
@@ -494,26 +475,6 @@ body {
   line-height: 1.35;
 }
 
-.rating-badge {
-  font-size: 0.7rem;
-  font-weight: 700;
-  padding: 0.3rem 0.7rem;
-  border-radius: 12px;
-  letter-spacing: 1px;
-}
-
-.rating-prime {
-  background: rgba(242, 201, 76, 0.18);
-  border: 1px solid var(--accent-gold);
-  color: var(--accent-gold);
-}
-
-.rating-good {
-  background: rgba(46, 213, 115, 0.18);
-  border: 1px solid var(--accent-green);
-  color: var(--accent-green);
-}
-
 /* Hydro & Atmospheric Grid */
 .med-temp-grid {
   display: grid;
@@ -542,50 +503,6 @@ body {
   color: #ffffff;
 }
 
-.text-gold {
-  color: var(--accent-gold);
-}
-
-/* Feeding Periods Grid */
-.feeding-periods-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 0.8rem;
-}
-
-.period-box {
-  background: rgba(0, 242, 254, 0.08);
-  border: 1px solid rgba(0, 242, 254, 0.3);
-  padding: 0.85rem;
-  border-radius: 14px;
-  display: flex;
-  flex-direction: column;
-  gap: 0.3rem;
-}
-
-.period-box.minor {
-  background: rgba(255, 255, 255, 0.03);
-  border-color: var(--panel-border);
-}
-
-.p-title {
-  font-size: 0.72rem;
-  font-weight: 700;
-  color: var(--text-muted);
-}
-
-.p-time {
-  font-family: var(--font-heading);
-  font-size: 1.05rem;
-  font-weight: 700;
-  color: var(--accent-cyan);
-}
-
-.p-note {
-  font-size: 0.72rem;
-  color: var(--text-muted);
-}
-
 /* Depth Filter Row */
 .depth-filter-row {
   display: flex;
@@ -598,15 +515,17 @@ body {
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid var(--panel-border);
   color: var(--text-muted);
+  font-family: var(--font-body);
   font-size: 0.78rem;
-  padding: 0.35rem 0.75rem;
+  font-weight: 600;
+  padding: 0.4rem 0.8rem;
   border-radius: 10px;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
-.depth-btn.active {
-  background: rgba(0, 242, 254, 0.18);
+.depth-btn:hover, .depth-btn.active {
+  background: rgba(0, 242, 254, 0.15);
   border-color: var(--accent-cyan);
   color: #ffffff;
   font-weight: 600;
@@ -617,7 +536,7 @@ body {
   display: flex;
   flex-direction: column;
   gap: 0.8rem;
-  max-height: 450px;
+  max-height: 480px;
   overflow-y: auto;
   padding-right: 0.3rem;
 }
@@ -638,32 +557,18 @@ body {
   border-color: rgba(255, 255, 255, 0.25);
 }
 
-.species-img {
-  width: 75px;
-  height: 75px;
-  object-fit: cover;
-  border-radius: 12px;
-  border: 1px solid var(--panel-border);
-}
-
-.species-info {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 0.3rem;
-}
-
 .species-name {
   font-family: var(--font-heading);
+  font-size: 1.05rem;
   font-weight: 700;
-  font-size: 0.98rem;
   color: #ffffff;
 }
 
 .species-latin {
   font-size: 0.75rem;
+  color: var(--accent-cyan);
   font-style: italic;
-  color: var(--text-muted);
+  margin-bottom: 0.4rem;
 }
 
 .species-meta-row {
@@ -671,6 +576,7 @@ body {
   gap: 0.8rem;
   font-size: 0.75rem;
   color: var(--text-muted);
+  margin-bottom: 0.5rem;
   flex-wrap: wrap;
 }
 
@@ -688,7 +594,7 @@ body {
   padding: 0.4rem 0.6rem;
   border-radius: 8px;
   color: var(--text-main);
-  margin-top: 0.3rem;
+  margin-top: 0.4rem;
 }
 
 /* Catch Journal */
@@ -734,12 +640,6 @@ body {
   z-index: 999;
 }
 
-@media (max-width: 768px) {
-  .mobile-bottom-nav {
-    display: flex;
-  }
-}
-
 .tab-btn {
   background: transparent;
   border: none;
@@ -764,85 +664,175 @@ body {
   font-weight: 600;
 }
 
-/* App Credits Footer */
+/* -------------------------------------------------------------
+   APP CREDITS FOOTER (ROOT FULL-WIDTH DESKTOP & MOBILE RESPONSIVE)
+------------------------------------------------------------- */
 .app-credits-footer {
-  margin-top: 3rem;
-  margin-bottom: 5rem;
-  padding: 2rem 1.5rem;
-  background: rgba(5, 8, 20, 0.6);
+  margin-top: 3.5rem;
+  margin-bottom: 2rem;
+  padding: 2.2rem 1.5rem;
+  background: rgba(11, 17, 44, 0.75);
   border: 1px solid var(--panel-border);
-  border-radius: 20px;
-  backdrop-filter: blur(12px);
+  border-radius: 24px;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   text-align: center;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+}
+
+.credits-container {
+  max-width: 1100px;
+  margin: 0 auto;
 }
 
 .credits-badge {
   display: inline-block;
-  font-size: 0.7rem;
+  font-size: 0.72rem;
   font-weight: 800;
-  letter-spacing: 1.5px;
+  letter-spacing: 2px;
   color: var(--accent-cyan);
-  background: rgba(0, 242, 254, 0.1);
-  border: 1px solid rgba(0, 242, 254, 0.3);
-  padding: 0.25rem 0.8rem;
+  background: rgba(0, 242, 254, 0.12);
+  border: 1px solid rgba(0, 242, 254, 0.35);
+  padding: 0.3rem 0.9rem;
   border-radius: 20px;
-  margin-bottom: 0.6rem;
+  margin-bottom: 0.8rem;
+  box-shadow: 0 0 15px var(--panel-glow);
 }
 
 .credits-title {
-  font-size: 1.2rem;
+  font-family: var(--font-heading);
+  font-size: 1.35rem;
   font-weight: 800;
   color: #ffffff;
-  margin-bottom: 0.2rem;
+  letter-spacing: 1px;
+  margin-bottom: 0.3rem;
 }
 
 .credits-subtitle {
-  font-size: 0.85rem;
+  font-size: 0.88rem;
   color: var(--accent-gold);
-  margin-bottom: 1.5rem;
-  font-weight: 600;
+  margin-bottom: 1.8rem;
+  font-weight: 700;
 }
 
 .credits-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 0.8rem;
-  max-width: 900px;
-  margin: 0 auto 1.5rem auto;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  margin: 0 auto 1.8rem auto;
 }
 
 .credit-card {
-  background: rgba(15, 23, 42, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 12px;
-  padding: 0.8rem;
+  background: rgba(5, 8, 20, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  padding: 1rem 0.8rem;
   display: flex;
   flex-direction: column;
   align-items: center;
-  transition: transform 0.2s ease, border-color 0.2s ease;
+  justify-content: center;
+  text-align: center;
+  transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
 }
 
 .credit-card:hover {
-  transform: translateY(-3px);
+  transform: translateY(-4px);
   border-color: var(--accent-cyan);
+  box-shadow: 0 6px 20px rgba(0, 242, 254, 0.15);
 }
 
 .credit-role {
-  font-size: 0.7rem;
+  font-size: 0.72rem;
   color: var(--text-muted);
   font-weight: 600;
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.35rem;
+  line-height: 1.3;
 }
 
 .credit-name {
-  font-size: 0.95rem;
-  font-weight: 700;
+  font-family: var(--font-heading);
+  font-size: 1rem;
+  font-weight: 800;
   color: #ffffff;
 }
 
 .credits-copyright {
-  font-size: 0.75rem;
+  font-size: 0.78rem;
   color: var(--text-muted);
+  font-weight: 500;
+  line-height: 1.5;
 }
 
+/* -------------------------------------------------------------
+   RESPONSIVE MEDIA QUERIES (MOBILE APP NATIVE OPTIMIZATIONS)
+------------------------------------------------------------- */
+@media (max-width: 1024px) {
+  .credits-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
 
+@media (max-width: 768px) {
+  .app-container {
+    padding: 1rem 1rem 6rem 1rem;
+  }
+
+  .navbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+  }
+
+  .nav-controls, .global-location-box {
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .location-select-wrapper, .location-search-wrapper {
+    width: 100%;
+  }
+
+  .glass-input-sm {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .mobile-bottom-nav {
+    display: flex;
+  }
+
+  .credits-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.8rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .logo-text h1 {
+    font-size: 1.4rem;
+  }
+
+  .presets-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .depth-filter-row {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+  }
+
+  .depth-btn {
+    text-align: center;
+  }
+
+  .credits-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .fishing-score-banner {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
