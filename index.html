@@ -109,20 +109,23 @@
         </div>
 
         <!-- Date & Timelapse Controls -->
-        <div class="control-panel">
-          <div class="date-picker-row">
-            <label for="date-input">Calendar Date:</label>
-            <input type="date" id="date-input" class="glass-input">
-            <button id="today-btn" class="glass-btn-sm">Today</button>
+        <div class="control-panel glass-panel">
+          <div class="control-group">
+            <span class="control-section-label">📅 Target Calendar Date:</span>
+            <div class="date-picker-row">
+              <input type="date" id="date-input" class="glass-input">
+              <button id="today-btn" class="glass-btn-sm">Today</button>
+            </div>
           </div>
 
-          <!-- 30-Day Cycle Timelapse Slider -->
-          <div class="slider-row">
-            <div class="slider-header">
-              <span>30-Day Lunar Cycle Timelapse</span>
+          <div class="control-group" style="margin-top: 0.8rem;">
+            <div class="slider-header-row">
+              <span class="control-section-label">🎬 30-Day Lunar Cycle Timelapse:</span>
               <button id="timelapse-btn" class="glass-btn-sm">▶ Play Timelapse</button>
             </div>
-            <input type="range" id="cycle-slider" min="0" max="29.5" step="0.1" value="14.8" class="moon-slider">
+            <div class="slider-control-row">
+              <input type="range" id="cycle-slider" min="0" max="29.5" step="0.1" value="14.8" class="moon-slider">
+            </div>
           </div>
         </div>
       </section>
@@ -298,6 +301,6 @@
     </button>
   </nav>
 
-  <script src="app.js?v=1111111"></script>
+  <script src="app.js?v=2222222"></script>
 </body>
 </html>

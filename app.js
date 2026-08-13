@@ -467,6 +467,24 @@ function renderSeasonalSpeciesForDate(date) {
   });
 }
 
+function formatHourToAMPM(h) {
+  let hour = Math.floor(h) % 24;
+  if (hour < 0) hour += 24;
+  const mins = Math.floor((h % 1) * 60);
+  const minStr = mins < 10 ? `0${mins}` : `${mins}`;
+  const ampm = hour >= 12 ? 'PM' : 'AM';
+  let displayHour = hour % 12;
+  if (displayHour === 0) displayHour = 12;
+  const hourStr = displayHour < 10 ? `0${displayHour}` : `${displayHour}`;
+  return `${hourStr}:${minStr} ${ampm}`;
+}
+
+function formatSolunarWindow(centerHour, durationHours) {
+  const start = centerHour - durationHours / 2;
+  const end = centerHour + durationHours / 2;
+  return `${formatHourToAMPM(start)} – ${formatHourToAMPM(end)}`;
+}
+
 // Global Solunar Engine
 function calculateSeaSolunar(date = new Date(), moonData) {
   const illum = parseFloat(moonData.illumination);
@@ -533,6 +551,25 @@ function updateView(date = new Date()) {
     else if (sol.score >= 80) scoreHead.textContent = `🟢 GOOD FISHING CONDITIONS — ${activeLocation.name}`;
     else scoreHead.textContent = `🟡 MODERATE STRIKE WINDOW — ${activeLocation.name}`;
   }
+
+  // Dynamic Solunar Windows Calculation
+  const age = parseFloat(moonInfo.rawAge || moonInfo.age);
+  const overheadHour = (12 + age * 0.833) % 24;
+  const underfootHour = (age * 0.833) % 24;
+  const moonriseHour = (6 + age * 0.833) % 24;
+  const moonsetHour = (18 + age * 0.833) % 24;
+
+  const maj1El = document.getElementById('major1-val');
+  if (maj1El) maj1El.textContent = formatSolunarWindow(overheadHour, 2);
+
+  const maj2El = document.getElementById('major2-val');
+  if (maj2El) maj2El.textContent = formatSolunarWindow(underfootHour, 2);
+
+  const min1El = document.getElementById('minor1-val');
+  if (min1El) min1El.textContent = formatSolunarWindow(moonriseHour, 1);
+
+  const min2El = document.getElementById('minor2-val');
+  if (min2El) min2El.textContent = formatSolunarWindow(moonsetHour, 1);
 
   renderSeasonalSpeciesForDate(date);
 }
