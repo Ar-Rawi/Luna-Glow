@@ -736,3 +736,32 @@ body {
   font-size: 0.65rem;
   font-weight: 600;
 }
+
+/* Dual View Perspective Mode Transformations */
+body.mode-astronomy #section-species,
+body.mode-astronomy #section-log {
+  display: none !important;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+body.mode-astronomy .moon-stage-card {
+  border-color: var(--accent-cyan) !important;
+  box-shadow: 0 0 40px rgba(0, 242, 254, 0.25) !important;
+}
+
+body.mode-astronomy #condition-panel {
+  opacity: 0.75;
+}
+
+body.mode-angler #section-species,
+body.mode-angler #section-log {
+  display: block !important;
+  opacity: 1;
+}
+
+body.mode-angler #condition-panel {
+  border-color: var(--accent-gold) !important;
+  box-shadow: 0 0 35px rgba(242, 201, 76, 0.15) !important;
+}
+
