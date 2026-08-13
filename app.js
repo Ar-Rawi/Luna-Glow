@@ -1,4 +1,4 @@
-// app.js — LUNA GLOW Marine Angler & Astronomical Observatory Engine v10
+// app.js — LUNA GLOW Marine Angler & Astronomical Observatory Engine v11
 // Physically Accurate Lunar Phase Terminator Renderer & Dual View Solunar Engine
 
 const LUNAR_MONTH = 29.53058867;
@@ -99,7 +99,7 @@ function findNextMoonPhaseDate(fromDate, targetPhase) {
   return new Date(fromDate.getTime() + 14 * 24 * 60 * 60 * 1000);
 }
 
-// PHYSICALLY ACCURATE LUNAR TERMINATOR RENDERER (Angle of Reflection & Shadow Curve!)
+// PHYSICALLY ACCURATE LUNAR TERMINATOR RENDERER (Angle of Reflection & Dark New Moon Fix!)
 function render3DMoonCanvas(moonInfo) {
   const canvas = document.getElementById('moon-canvas');
   if (!canvas) return;
@@ -111,11 +111,11 @@ function render3DMoonCanvas(moonInfo) {
   const r = 130;
 
   const age = parseFloat(moonInfo.rawAge || moonInfo.age);
-  const phaseRatio = (age % LUNAR_MONTH) / LUNAR_MONTH; // 0 to 1
+  const phaseRatio = (age % LUNAR_MONTH) / LUNAR_MONTH; // 0.0 to 1.0
 
   ctx.clearRect(0, 0, w, h);
 
-  // 1. Draw Base Dark Sphere Disc
+  // 1. Draw Base Dark Sphere Disc (New Moon Dark Shadow Base)
   ctx.save();
   ctx.beginPath();
   ctx.arc(cx, cy, r, 0, Math.PI * 2);
@@ -134,45 +134,68 @@ function render3DMoonCanvas(moonInfo) {
     ctx.fill();
   });
 
-  // 2. Render Illuminated Portion with Curved Mathematical Terminator Line
-  // cosTerm ranges from +1 (New) -> 0 (1st Qtr / 3rd Qtr) -> -1 (Full)
-  const cosTerm = Math.cos(phaseRatio * 2 * Math.PI);
+  // 2. Render Illuminated Portion (Only when illumination > 1%)
+  const illuminationFraction = (1 - Math.cos(phaseRatio * 2 * Math.PI)) / 2;
 
-  ctx.beginPath();
-  if (phaseRatio <= 0.5) {
-    // WAXING PHASES (Light comes from RIGHT side)
-    // Outer semi-circle from top (-pi/2) to bottom (+pi/2) along right edge
-    ctx.arc(cx, cy, r, -Math.PI / 2, Math.PI / 2, false);
-    // Elliptical terminator curve returning from bottom to top
-    ctx.ellipse(cx, cy, Math.abs(r * cosTerm), r, 0, Math.PI / 2, -Math.PI / 2, cosTerm < 0);
-  } else {
-    // WANING PHASES (Light recedes to LEFT side)
-    // Outer semi-circle from top (-pi/2) to bottom (+pi/2) along left edge
-    ctx.arc(cx, cy, r, -Math.PI / 2, Math.PI / 2, true);
-    // Elliptical terminator curve returning from bottom to top
-    ctx.ellipse(cx, cy, Math.abs(r * cosTerm), r, 0, Math.PI / 2, -Math.PI / 2, cosTerm > 0);
-  }
-  ctx.closePath();
-
-  // Radial Lighting Gradient for Spherical 3D Volume
-  const grad = ctx.createRadialGradient(cx - r * 0.2, cy - r * 0.2, r * 0.1, cx, cy, r);
-  grad.addColorStop(0, '#ffffff');
-  grad.addColorStop(0.6, '#cbd5e1');
-  grad.addColorStop(1, '#64748b');
-
-  ctx.fillStyle = grad;
-  ctx.fill();
-
-  // Draw Illuminated Craters clipped to lit shape
-  ctx.save();
-  ctx.clip();
-  ctx.fillStyle = 'rgba(71, 85, 105, 0.35)';
-  craters.forEach(c => {
+  if (illuminationFraction > 0.01) {
     ctx.beginPath();
-    ctx.arc(cx + c.x, cy + c.y, c.r, 0, Math.PI * 2);
+
+    const isWaxing = phaseRatio <= 0.5;
+
+    if (isWaxing) {
+      ctx.arc(cx, cy, r, -Math.PI / 2, Math.PI / 2, false); // Right outer arc
+    } else {
+      ctx.arc(cx, cy, r, Math.PI / 2, -Math.PI / 2, false); // Left outer arc
+    }
+
+    const xRadius = r * Math.abs(Math.cos(phaseRatio * 2 * Math.PI));
+    const termIsConvexRight = Math.cos(phaseRatio * 2 * Math.PI) > 0;
+
+    if (isWaxing) {
+      if (termIsConvexRight) {
+        ctx.ellipse(cx, cy, xRadius, r, 0, Math.PI / 2, -Math.PI / 2, false);
+      } else {
+        ctx.ellipse(cx, cy, xRadius, r, 0, Math.PI / 2, -Math.PI / 2, true);
+      }
+    } else {
+      if (termIsConvexRight) {
+        ctx.ellipse(cx, cy, xRadius, r, 0, -Math.PI / 2, Math.PI / 2, false);
+      } else {
+        ctx.ellipse(cx, cy, xRadius, r, 0, -Math.PI / 2, Math.PI / 2, true);
+      }
+    }
+
+    ctx.closePath();
+
+    // Lit Sphere Gradient
+    const grad = ctx.createRadialGradient(cx - r * 0.2, cy - r * 0.2, r * 0.1, cx, cy, r);
+    grad.addColorStop(0, '#ffffff');
+    grad.addColorStop(0.6, '#cbd5e1');
+    grad.addColorStop(1, '#64748b');
+
+    ctx.fillStyle = grad;
     ctx.fill();
-  });
-  ctx.restore();
+
+    // Lit Craters Overlay
+    ctx.save();
+    ctx.clip();
+    ctx.fillStyle = 'rgba(71, 85, 105, 0.35)';
+    craters.forEach(c => {
+      ctx.beginPath();
+      ctx.arc(cx + c.x, cy + c.y, c.r, 0, Math.PI * 2);
+      ctx.fill();
+    });
+    ctx.restore();
+  }
+
+  // 3. Subtle Outer Atmosphere Glow
+  if (illuminationFraction > 0.05) {
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.strokeStyle = `rgba(0, 242, 254, ${0.35 * illuminationFraction})`;
+    ctx.lineWidth = 2.5;
+    ctx.stroke();
+  }
 
   ctx.restore();
 }
@@ -238,7 +261,6 @@ function renderSeasonalSpeciesForDate(date) {
 
 // Solunar Engine
 function calculateSeaSolunar(date = new Date(), moonData) {
-  const age = parseFloat(moonData.age);
   const month = date.getMonth();
 
   let score = 75;
