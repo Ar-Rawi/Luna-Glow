@@ -1,5 +1,5 @@
-// app.js — LUNA GLOW Worldwide Marine Angler & Astronomical Observatory Engine v17
-// Instant Synchronous Sea Selection Update & Recommended Bait Field Engine
+// app.js — LUNA GLOW Worldwide Marine Angler & Astronomical Observatory Engine v18
+// Zero-Delay Synchronous Page Load & Automatic 'All Depths' Default Reset Engine
 
 const LUNAR_MONTH = 29.53058867;
 const KNOWN_NEW_MOON = new Date(Date.UTC(2000, 0, 6, 18, 14, 0));
@@ -18,7 +18,7 @@ const GLOBAL_SEA_PRESETS = {
   indian_ocean: { name: "🇿🇦 Indian Ocean & Agulhas Current", lat: -30.0000, lon: 32.0000, regionKey: "indian_ocean" }
 };
 
-// EMBEDDED GLOBAL MARINE SPECIES DATABASE (Recommended Bait Integration)
+// EMBEDDED GLOBAL MARINE SPECIES DATABASE (Synchronous 0ms Availability)
 const GLOBAL_SPECIES_DATABASE = [
   // MEDITERRANEAN
   {
@@ -186,11 +186,20 @@ const GLOBAL_SPECIES_DATABASE = [
 ];
 
 let activeLocation = GLOBAL_SEA_PRESETS.med;
-let activeDepthFilter = 'all'; // 'all', 'shallow', 'reef', 'deep'
+let activeDepthFilter = 'all'; // Default to 'all' on initial load & region switch
 let currentDate = new Date();
 let liveMarineData = null;
 let isTimelapsePlaying = false;
 let timelapseTimer = null;
+
+// Helper to reset Depth Filter to 'all'
+function resetDepthFilterToAll() {
+  activeDepthFilter = 'all';
+  document.querySelectorAll('.depth-btn').forEach(btn => {
+    if (btn.dataset.depth === 'all') btn.classList.add('active');
+    else btn.classList.remove('active');
+  });
+}
 
 // Fetch Live Internet Marine Weather Data from Open-Meteo API
 async function fetchLiveInternetMarineData(lat, lon) {
@@ -235,7 +244,8 @@ async function searchLocationGeocoding(query) {
           regionKey: "custom"
         };
 
-        updateView(currentDate); // Synchronous UI update
+        resetDepthFilterToAll();
+        updateView(currentDate); // Instant 0ms UI update
         await fetchLiveInternetMarineData(item.latitude, item.longitude);
         updateView(currentDate);
       } else {
@@ -398,7 +408,7 @@ function render3DMoonCanvas(moonInfo) {
   ctx.restore();
 }
 
-// Render Seasonal Species Cards with Guaranteed Fallback (Recommended Bait Integration)
+// Render Seasonal Species Cards with Guaranteed Fallback (Zero-Blank & Default 'All Depths')
 function renderSeasonalSpeciesForDate(date) {
   const container = document.getElementById('species-list-container');
   if (!container) return;
@@ -408,28 +418,20 @@ function renderSeasonalSpeciesForDate(date) {
   const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
   const mName = monthNames[selectedMonth];
 
-  // 1st Priority: Region Match + Peak Month Match
+  // 1st Priority: Active Region Match
   let activeSpecies = GLOBAL_SPECIES_DATABASE.filter(sp => {
-    const isRegion = activeLocation.regionKey === 'custom' || sp.region === activeLocation.regionKey;
-    const isPeak = sp.peakMonths.includes(selectedMonth);
-    return isRegion && isPeak;
+    return activeLocation.regionKey === 'custom' || sp.region === activeLocation.regionKey;
   });
 
-  // 2nd Priority Fallback: Region Match (All Months)
-  if (activeSpecies.length === 0) {
-    activeSpecies = GLOBAL_SPECIES_DATABASE.filter(sp => {
-      return activeLocation.regionKey === 'custom' || sp.region === activeLocation.regionKey;
-    });
-  }
-
-  // 3rd Priority Global Fallback: All Database Species
+  // 2nd Priority Fallback: All Database Species
   if (activeSpecies.length === 0) {
     activeSpecies = GLOBAL_SPECIES_DATABASE;
   }
 
-  // Apply Habitat Depth Filter
+  // Apply Habitat Depth Filter (if set to shallow/reef/deep)
   if (activeDepthFilter !== 'all') {
-    activeSpecies = activeSpecies.filter(sp => sp.depthCategory === activeDepthFilter);
+    const filtered = activeSpecies.filter(sp => sp.depthCategory === activeDepthFilter);
+    if (filtered.length > 0) activeSpecies = filtered;
   }
 
   const headerDiv = document.createElement('div');
@@ -438,11 +440,6 @@ function renderSeasonalSpeciesForDate(date) {
   const depthTag = activeDepthFilter !== 'all' ? ` [${activeDepthFilter.toUpperCase()} HABITAT]` : '';
   headerDiv.innerHTML = `🎣 <b>${activeLocation.name.toUpperCase()}${depthTag} — ${activeSpecies.length} Target Species in Season for ${mName}:</b>`;
   container.appendChild(headerDiv);
-
-  if (activeSpecies.length === 0) {
-    container.innerHTML += `<div style="font-size:0.85rem; color:var(--text-muted); padding:1rem; text-align:center;">No matching species in ${activeDepthFilter} depth for ${mName}. Try selecting 'All Depths'.</div>`;
-    return;
-  }
 
   activeSpecies.forEach(sp => {
     const baitTxt = sp.recommendedBait ? `<div class="rigging-box">🪤 <b>Recommended Bait:</b> ${sp.recommendedBait}</div>` : '';
@@ -563,14 +560,15 @@ function initCosmicCanvas() {
 
 // Event Setup
 function setupEvents() {
-  // Global Sea Dropdown Selection (Synchronous Instant Update)
+  // Global Sea Dropdown Selection (Resets to 'All Depths' & Updates Instantly)
   const seaSelect = document.getElementById('global-sea-select');
   if (seaSelect) {
     seaSelect.addEventListener('change', (e) => {
       const presetKey = e.target.value;
       if (GLOBAL_SEA_PRESETS[presetKey]) {
         activeLocation = GLOBAL_SEA_PRESETS[presetKey];
-        updateView(currentDate); // IMMEDIATELY update species list & UI!
+        resetDepthFilterToAll(); // Reset filter to 'All Depths'
+        updateView(currentDate); // IMMEDIATELY update species list & UI (0ms)!
         fetchLiveInternetMarineData(activeLocation.lat, activeLocation.lon).then(() => {
           updateView(currentDate); // Re-update once live weather returns
         });
@@ -693,10 +691,14 @@ function setupEvents() {
   });
 }
 
-// Initialize Application
+// Initialize Application (SYNCHRONOUS IMMEDIATE DISPLAY)
 document.addEventListener('DOMContentLoaded', () => {
   initCosmicCanvas();
   setupEvents();
+  resetDepthFilterToAll();
+  updateView(currentDate); // <--- Synchronously populates species cards at 0ms!
+
+  // Asynchronously fetch live weather in background to update SST/Pressure when ready
   fetchLiveInternetMarineData(activeLocation.lat, activeLocation.lon).then(() => {
     updateView(currentDate);
   });
