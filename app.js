@@ -571,6 +571,12 @@ function updateView(date = new Date()) {
   const min2El = document.getElementById('minor2-val');
   if (min2El) min2El.textContent = formatSolunarWindow(moonsetHour, 1);
 
+  // Synchronize 30-Day Lunar Cycle Slider Knob position with current date's lunar age
+  const cycleSliderEl = document.getElementById('cycle-slider');
+  if (cycleSliderEl) {
+    cycleSliderEl.value = age.toFixed(1);
+  }
+
   renderSeasonalSpeciesForDate(date);
 }
 
