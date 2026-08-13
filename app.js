@@ -1,5 +1,5 @@
-// app.js — LUNA GLOW Worldwide Marine Angler & Astronomical Observatory Engine v15
-// Dynamic Global Sea Location Selector, Geocoding Search API & Worldwide Marine Species Engine
+// app.js — LUNA GLOW Worldwide Marine Angler & Astronomical Observatory Engine v16
+// Instant Synchronous Global Species Database & Bulletproof Marine Field Guide Renderer
 
 const LUNAR_MONTH = 29.53058867;
 const KNOWN_NEW_MOON = new Date(Date.UTC(2000, 0, 6, 18, 14, 0));
@@ -18,10 +18,176 @@ const GLOBAL_SEA_PRESETS = {
   indian_ocean: { name: "🇿🇦 Indian Ocean & Agulhas Current", lat: -30.0000, lon: 32.0000, regionKey: "indian_ocean" }
 };
 
+// EMBEDDED GLOBAL MARINE SPECIES DATABASE (Synchronous & Zero Network Failure Guarantee)
+const GLOBAL_SPECIES_DATABASE = [
+  // MEDITERRANEAN
+  {
+    id: "med_sp1", region: "med", name: "Bluefin Tuna", scientificName: "Thunnus thynnus",
+    seasonCategory: "Summer/Autumn Apex", peakMonths: [4, 5, 6, 7, 8, 9, 10], depth: "20m - 150m", depthCategory: "deep", idealSST: "20°C - 25°C",
+    tactics: "Chumming with sardines (drifting) or trolling heavy skirted lures along continental drop-offs during major solunar hours.",
+    rigging: "80lb Fluorocarbon Leader, 7/0 Circle Hook, Live Sardine / Mackerel"
+  },
+  {
+    id: "med_sp2", region: "med", name: "European Sea Bass (Spigola)", scientificName: "Dicentrarchus labrax",
+    seasonCategory: "Coastal Surf & Estuary", peakMonths: [0, 1, 2, 7, 8, 9, 10, 11], depth: "1m - 15m", depthCategory: "shallow", idealSST: "18°C - 23°C",
+    tactics: "Casting soft plastics or minnow lures around river mouths, harbor jetties, and rocky surf zones during dawn minor hours.",
+    rigging: "15lb Braided Line, 0.30mm Fluorocarbon, 110mm Floating Minnow / Topwater Popper"
+  },
+  {
+    id: "med_sp3", region: "med", name: "Dentex (Dentice)", scientificName: "Dentex dentex",
+    seasonCategory: "Reef Apex Predator", peakMonths: [3, 4, 5, 6, 7, 8, 9, 10], depth: "15m - 50m", depthCategory: "reef", idealSST: "19°C - 24°C",
+    tactics: "Slow trolling live squid or cuttlefish with downrigger over rocky pinnacles during moon overhead periods.",
+    rigging: "50lb Braid, 0.60mm Fluorocarbon Leader, 2x Live-Bait Hooks, Live Cuttlefish"
+  },
+  {
+    id: "med_sp4", region: "med", name: "Greater Amberjack (Ricciola)", scientificName: "Seriola dumerili",
+    seasonCategory: "Summer/Autumn Powerhouse", peakMonths: [5, 6, 7, 8, 9, 10], depth: "20m - 80m", depthCategory: "reef", idealSST: "22°C - 26°C",
+    tactics: "Vertical metal jigging (150g-250g) over deep wrecks or live baiting with needlefish during major solunar hours.",
+    rigging: "60lb PE Braid, 0.70mm Shock Leader, 200g Speed Jig, Assist Hook 6/0"
+  },
+  {
+    id: "med_sp5", region: "med", name: "Gilthead Seabream (Orata)", scientificName: "Sparus aurata",
+    seasonCategory: "Coastal Feeder", peakMonths: [4, 5, 6, 7, 8, 9, 10], depth: "2m - 20m", depthCategory: "shallow", idealSST: "20°C - 25°C",
+    tactics: "Surfcasting with crab or bibi worm on sandy beaches and estuarine channels.",
+    rigging: "0.22mm Fluorocarbon Snood, Size 2 Chinu Hook, Whole Shore Crab"
+  },
+  {
+    id: "med_sp6", region: "med", name: "Mahi-Mahi (Lampuga)", scientificName: "Coryphaena hippurus",
+    seasonCategory: "Offshore Surface Runner", peakMonths: [7, 8, 9, 10, 11], depth: "0m - 30m", depthCategory: "deep", idealSST: "23°C - 27°C",
+    tactics: "Trolling small feathers or casting poppers near FADs (Fish Aggregating Devices) during high pressure days.",
+    rigging: "30lb Line, 0.45mm Fluorocarbon, 3-inch Feather Rig / Small Poppers"
+  },
+
+  // MALAYSIA
+  {
+    id: "my_sp1", region: "malaysia", name: "Barramundi (Siakap)", scientificName: "Lates calcarifer",
+    seasonCategory: "Estuary Golden Strike", peakMonths: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], depth: "1m - 12m", depthCategory: "shallow", idealSST: "28°C - 31°C",
+    tactics: "Casting soft plastic paddletails or live prawn drifting near mangrove pylons and river mouths during incoming tide.",
+    rigging: "20lb Braid, 40lb Leader, 4-inch Soft Plastic Shad / Live Prawn Hook"
+  },
+  {
+    id: "my_sp2", region: "malaysia", name: "Giant Trevally (Cebali / GT)", scientificName: "Caranx ignobilis",
+    seasonCategory: "Year-Round Reef Apex", peakMonths: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], depth: "10m - 60m", depthCategory: "reef", idealSST: "28°C - 30°C",
+    tactics: "Heavy topwater popping (100g-160g poppers) over shallow reef drop-offs during major moon overhead hours.",
+    rigging: "PE8 Braid, 130lb Shock Leader, 120g Chugger Popper, Treble 4/0"
+  },
+  {
+    id: "my_sp3", region: "malaysia", name: "Spanish Mackerel (Tenggiri)", scientificName: "Scomberomorus commerson",
+    seasonCategory: "Southwest Monsoon Golden", peakMonths: [3, 4, 5, 6, 7, 8, 9], depth: "15m - 40m", depthCategory: "reef", idealSST: "28°C - 30°C",
+    tactics: "Fast trolling minnow lures (Rapala CD14) or drifting live selar/tamban with wire trace.",
+    rigging: "30lb Braid, 40lb Fluorocarbon with 15cm Single Strand Wire, Live Tamban"
+  },
+  {
+    id: "my_sp4", region: "malaysia", name: "Mangrove Red Snapper (Siakap Merah)", scientificName: "Lutjanus argentimaculatus",
+    seasonCategory: "Estuary & Island Reef", peakMonths: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], depth: "2m - 25m", depthCategory: "shallow", idealSST: "27°C - 30°C",
+    tactics: "Bottom fishing with live squid or casting deep-diver crankbaits near submerged rock piles.",
+    rigging: "30lb Braid, 50lb Leader, Apollo Rig / Deep Diver Minnow"
+  },
+  {
+    id: "my_sp5", region: "malaysia", name: "Indo-Pacific Sailfish (Layaran)", scientificName: "Istiophorus platypterus",
+    seasonCategory: "Kuala Rompin Peak", peakMonths: [5, 6, 7, 8, 9, 10], depth: "15m - 50m", depthCategory: "deep", idealSST: "28°C - 30°C",
+    tactics: "Drifting live tamban or kembung with balloon rigs near bird aggregations off Rompin.",
+    rigging: "30lb Mainline, 80lb Leader, 7/0 Circle Hook (Catch & Release mandatory)"
+  },
+
+  // GULF OF MEXICO
+  {
+    id: "gulf_sp1", region: "gulf_mexico", name: "Red Snapper", scientificName: "Lutjanus campechanus",
+    seasonCategory: "Summer Reef Season", peakMonths: [4, 5, 6, 7, 8, 9], depth: "15m - 60m", depthCategory: "reef", idealSST: "24°C - 28°C",
+    tactics: "Bottom dropping with cut cigar minnows or pogies over artificial reefs and oil rigs.",
+    rigging: "50lb Braid, 60lb Leader, 6/0 Circle Hook, Carolina Rig with 4oz lead"
+  },
+  {
+    id: "gulf_sp2", region: "gulf_mexico", name: "Tarpon (Silver King)", scientificName: "Megalops atlanticus",
+    seasonCategory: "Pass Migration", peakMonths: [4, 5, 6, 7, 8, 9], depth: "2m - 15m", depthCategory: "shallow", idealSST: "26°C - 30°C",
+    tactics: "Drifting live pass crabs or mullet along beach tide lines during full moon spring tides.",
+    rigging: "50lb Braid, 80lb Fluorocarbon, 7/0 Circle Hook, Live Pass Crab"
+  },
+  {
+    id: "gulf_sp3", region: "gulf_mexico", name: "Red Drum (Redfish)", scientificName: "Sciaenops ocellatus",
+    seasonCategory: "Flats & Bull Red Run", peakMonths: [0, 1, 2, 7, 8, 9, 10, 11], depth: "1m - 10m", depthCategory: "shallow", idealSST: "20°C - 26°C",
+    tactics: "Sight casting gold spoons or jigheads with Gulp shrimp in marsh flats and oyster bars.",
+    rigging: "20lb Braid, 30lb Fluorocarbon, 1/4oz Jighead with Gulp Alive Saltwater Shrimp"
+  },
+
+  // CARIBBEAN
+  {
+    id: "carib_sp1", region: "caribbean", name: "Bonefish", scientificName: "Albula vulpes",
+    seasonCategory: "Year-Round Flats King", peakMonths: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], depth: "0.5m - 3m", depthCategory: "shallow", idealSST: "25°C - 29°C",
+    tactics: "Fly fishing with Gotcha patterns or light spinning with live mantis shrimp on skinny sand flats.",
+    rigging: "8wt Fly Rod / 10lb Leader, 12ft Tapered Fluorocarbon, Gotcha Fly #4"
+  },
+  {
+    id: "carib_sp2", region: "caribbean", name: "Permit", scientificName: "Trachinotus falcatus",
+    seasonCategory: "Flats Challenge", peakMonths: [2, 3, 4, 5, 6, 7], depth: "1m - 8m", depthCategory: "shallow", idealSST: "26°C - 29°C",
+    tactics: "Sight casting live dollar crabs to tailing fish on coral rubble flats.",
+    rigging: "16lb Leader, 1/0 Circle Hook, Live Pass/Blue Crab"
+  },
+
+  // CORAL SEA
+  {
+    id: "coral_sp1", region: "coral_sea", name: "Coral Trout", scientificName: "Plectropomus leopardus",
+    seasonCategory: "Barrier Reef Prime", peakMonths: [3, 4, 5, 6, 7, 8, 9, 10], depth: "5m - 35m", depthCategory: "reef", idealSST: "24°C - 27°C",
+    tactics: "Casting stickbaits over coral bommies or dropping slow-pitch jigs into deep reef gaps.",
+    rigging: "50lb Braid, 80lb Shock Leader, 140mm Floating Stickbait"
+  },
+  {
+    id: "coral_sp2", region: "coral_sea", name: "Dogtooth Tuna", scientificName: "Gymnosarda unicolor",
+    seasonCategory: "Outer Atoll Monster", peakMonths: [7, 8, 9, 10, 11], depth: "30m - 120m", depthCategory: "deep", idealSST: "25°C - 28°C",
+    tactics: "Heavy vertical jigging (250g-400g) on steep outer drop-offs during major moon overhead hours.",
+    rigging: "PE8 Braid, 170lb Shock Leader, 300g Knife Jig, 9/0 Heavy Assist Hook"
+  },
+
+  // SEA OF JAPAN
+  {
+    id: "japan_sp1", region: "sea_japan", name: "Japanese Yellowtail (Buri)", scientificName: "Seriola quinqueradiata",
+    seasonCategory: "Golden Buri Season", peakMonths: [8, 9, 10, 11, 0, 1], depth: "20m - 80m", depthCategory: "reef", idealSST: "16°C - 21°C",
+    tactics: "Offshore king-slashing vertical metal jigging over rocky banks during high barometric pressure.",
+    rigging: "PE4 Braid, 60lb Fluorocarbon, 180g Metal Long Jig"
+  },
+  {
+    id: "japan_sp2", region: "sea_japan", name: "Japanese Sea Bass (Suzuki)", scientificName: "Lateolabrax japonicus",
+    seasonCategory: "River Mouth & Jetty", peakMonths: [2, 3, 4, 5, 8, 9, 10], depth: "2m - 15m", depthCategory: "shallow", idealSST: "15°C - 20°C",
+    tactics: "Night casting slim minnow plugs around bridge pilings and estuarine current seams.",
+    rigging: "12lb PE Braid, 20lb Leader, 125mm Shallow Runner Minnow"
+  },
+
+  // NORTH SEA
+  {
+    id: "north_sp1", region: "north_sea", name: "Atlantic Cod", scientificName: "Gadus morhua",
+    seasonCategory: "Winter Wreck Monster", peakMonths: [9, 10, 11, 0, 1, 2], depth: "20m - 100m", depthCategory: "deep", idealSST: "8°C - 13°C",
+    tactics: "Wreck fishing with pirkers (metal jigs) or black rubber sandeel lures on deep North Sea wrecks.",
+    rigging: "50lb Braid, 60lb Leader, 250g Norway Pirke with Red Mackerel Rubber Sandeel"
+  },
+
+  // RED SEA
+  {
+    id: "red_sp1", region: "red_sea", name: "Emperor Snapper", scientificName: "Lutjanus sebae",
+    seasonCategory: "Red Sea Coral Plateau", peakMonths: [1, 2, 3, 4, 9, 10, 11], depth: "15m - 60m", depthCategory: "reef", idealSST: "24°C - 28°C",
+    tactics: "Bottom dropping whole squid or mackerel strips on offshore coral reef banks.",
+    rigging: "60lb Braid, 80lb Leader, 2-Hook Dropper Rig with 7/0 Hooks"
+  },
+
+  // PACIFIC NORTHWEST
+  {
+    id: "pnw_sp1", region: "pacific_nw", name: "Chinook Salmon (King Salmon)", scientificName: "Oncorhynchus tshawytscha",
+    seasonCategory: "Summer Run King", peakMonths: [4, 5, 6, 7, 8], depth: "10m - 50m", depthCategory: "deep", idealSST: "11°C - 15°C",
+    tactics: "Trolling downriggers with flasher and herring strip or spoon at 60-120ft depth.",
+    rigging: "30lb Braid, 25lb Leader, 11-inch UV Flasher + Whole Green Label Herring"
+  },
+
+  // INDIAN OCEAN
+  {
+    id: "ind_sp1", region: "indian_ocean", name: "Yellowfin Tuna", scientificName: "Thunnus albacares",
+    seasonCategory: "Agulhas Current Run", peakMonths: [9, 10, 11, 0, 1, 2], depth: "30m - 150m", depthCategory: "deep", idealSST: "21°C - 26°C",
+    tactics: "Chumming with pilchards or trolling skirted lures along continental shelf edges.",
+    rigging: "80lb Braid, 100lb Fluorocarbon, 8/0 Circle Hook, Live Pilchard"
+  }
+];
+
 let activeLocation = GLOBAL_SEA_PRESETS.med;
 let activeDepthFilter = 'all'; // 'all', 'shallow', 'reef', 'deep'
 let currentDate = new Date();
-let globalSpeciesDatabase = [];
 let liveMarineData = null;
 let isTimelapsePlaying = false;
 let timelapseTimer = null;
@@ -77,20 +243,6 @@ async function searchLocationGeocoding(query) {
     }
   } catch (err) {
     alert(`Geocoding search failed: ${err.message}`);
-  }
-}
-
-// Load Global Species Database
-async function loadDatabases() {
-  try {
-    const res = await fetch('global_species_database.json');
-    if (res.ok) {
-      globalSpeciesDatabase = await res.json();
-    }
-    await fetchLiveInternetMarineData(activeLocation.lat, activeLocation.lon);
-    updateView(currentDate);
-  } catch (err) {
-    console.warn("Could not load global species database:", err);
   }
 }
 
@@ -245,7 +397,7 @@ function render3DMoonCanvas(moonInfo) {
   ctx.restore();
 }
 
-// Render Seasonal Species Cards for Active Location
+// Render Seasonal Species Cards with Guaranteed Fallback (Zero-Blank Assurance)
 function renderSeasonalSpeciesForDate(date) {
   const container = document.getElementById('species-list-container');
   if (!container) return;
@@ -255,18 +407,26 @@ function renderSeasonalSpeciesForDate(date) {
   const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
   const mName = monthNames[selectedMonth];
 
-  // Filter species matching active region key or return peak month matches
-  let activeSpecies = globalSpeciesDatabase.filter(sp => {
-    const isRegionMatch = activeLocation.regionKey === 'custom' || sp.region === activeLocation.regionKey;
-    const isPeakMonth = sp.peakMonths.includes(selectedMonth);
-    return isRegionMatch && isPeakMonth;
+  // 1st Priority: Region Match + Peak Month Match
+  let activeSpecies = GLOBAL_SPECIES_DATABASE.filter(sp => {
+    const isRegion = activeLocation.regionKey === 'custom' || sp.region === activeLocation.regionKey;
+    const isPeak = sp.peakMonths.includes(selectedMonth);
+    return isRegion && isPeak;
   });
 
-  // Fallback: If custom location or sparse region, show all peak month species
+  // 2nd Priority Fallback: Region Match (All Months)
   if (activeSpecies.length === 0) {
-    activeSpecies = globalSpeciesDatabase.filter(sp => sp.peakMonths.includes(selectedMonth));
+    activeSpecies = GLOBAL_SPECIES_DATABASE.filter(sp => {
+      return activeLocation.regionKey === 'custom' || sp.region === activeLocation.regionKey;
+    });
   }
 
+  // 3rd Priority Global Fallback: All Database Species
+  if (activeSpecies.length === 0) {
+    activeSpecies = GLOBAL_SPECIES_DATABASE;
+  }
+
+  // Apply Habitat Depth Filter
   if (activeDepthFilter !== 'all') {
     activeSpecies = activeSpecies.filter(sp => sp.depthCategory === activeDepthFilter);
   }
@@ -275,7 +435,7 @@ function renderSeasonalSpeciesForDate(date) {
   headerDiv.style.cssText = "margin-bottom: 0.8rem; font-size:0.85rem; font-weight:700; color:var(--accent-gold);";
   
   const depthTag = activeDepthFilter !== 'all' ? ` [${activeDepthFilter.toUpperCase()} HABITAT]` : '';
-  headerDiv.innerHTML = `🎣 <b>${activeLocation.name.toUpperCase()}${depthTag} — ${activeSpecies.length} Target Species in Season for ${mName}:</b>`;
+  headerDiv.innerHTML = `🎣 <b>${activeLocation.name.toUpperCase()}${depthTag} — ${activeSpecies.length} Target Species for ${mName}:</b>`;
   container.appendChild(headerDiv);
 
   if (activeSpecies.length === 0) {
@@ -292,7 +452,7 @@ function renderSeasonalSpeciesForDate(date) {
       <div class="species-info" style="width:100%;">
         <div style="display:flex; justify-content:space-between; align-items:center;">
           <div class="species-name">${sp.name}</div>
-          <span style="font-size:0.7rem; background:rgba(242,201,76,0.15); border:1px solid var(--accent-gold); color:var(--accent-gold); padding:0.2rem 0.6rem; border-radius:10px; font-weight:700;">🔥 PEAK IN ${mName.toUpperCase()}</span>
+          <span style="font-size:0.7rem; background:rgba(242,201,76,0.15); border:1px solid var(--accent-gold); color:var(--accent-gold); padding:0.2rem 0.6rem; border-radius:10px; font-weight:700;">🔥 PEAK TARGET</span>
         </div>
         <div class="species-latin">${sp.scientificName}</div>
         <div class="species-meta-row">
@@ -313,7 +473,7 @@ function calculateSeaSolunar(date = new Date(), moonData) {
   const month = date.getMonth();
   const illum = parseFloat(moonData.illumination);
 
-  let score = Math.round(70 + (illum > 80 || illum < 20 ? 20 : 10) + (Math.random() * 5));
+  let score = Math.round(72 + (illum > 80 || illum < 20 ? 18 : 10) + (Math.random() * 4));
   let baroHpa = liveMarineData ? liveMarineData.pressure : 1013;
   let sstVal = liveMarineData ? `${liveMarineData.sst}°C` : "25.0°C";
   let baroTxt = `${baroHpa} hPa (🟢 OPTIMAL BITE)`;
@@ -535,5 +695,7 @@ function setupEvents() {
 document.addEventListener('DOMContentLoaded', () => {
   initCosmicCanvas();
   setupEvents();
-  loadDatabases();
+  fetchLiveInternetMarineData(activeLocation.lat, activeLocation.lon).then(() => {
+    updateView(currentDate);
+  });
 });
