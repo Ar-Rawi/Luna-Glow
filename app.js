@@ -1,5 +1,5 @@
-// app.js — LUNA GLOW Marine Angler & Astronomical Observatory Engine v12
-// Infallible 3D Lunar Terminator & Moon Phase Renderer (New Moon = Dark, Full Moon = Bright)
+// app.js — LUNA GLOW Marine Angler & Astronomical Observatory Engine v13
+// Flawless 3D Lunar Terminator Geometry: Waxing Crescent grows from thin arc to Full Moon
 
 const LUNAR_MONTH = 29.53058867;
 const KNOWN_NEW_MOON = new Date(Date.UTC(2000, 0, 6, 18, 14, 0));
@@ -99,7 +99,7 @@ function findNextMoonPhaseDate(fromDate, targetPhase) {
   return new Date(fromDate.getTime() + 14 * 24 * 60 * 60 * 1000);
 }
 
-// INFALLIBLE 3D MOON CANVAS TERMINATOR RENDERER (New Moon = 100% Dark, Full Moon = 100% Bright White)
+// FLAWLESS 3D MOON CANVAS TERMINATOR RENDERER (Crescent grows from thin edge -> Full Moon)
 function render3DMoonCanvas(moonInfo) {
   const canvas = document.getElementById('moon-canvas');
   if (!canvas) return;
@@ -111,11 +111,11 @@ function render3DMoonCanvas(moonInfo) {
   const r = 130;
 
   const age = parseFloat(moonInfo.rawAge || moonInfo.age);
-  const phaseRatio = (age % LUNAR_MONTH) / LUNAR_MONTH; // 0.0 (New) to 0.5 (Full) to 1.0 (New)
+  const phaseRatio = (age % LUNAR_MONTH) / LUNAR_MONTH; // 0.0 (New) -> 0.5 (Full) -> 1.0 (New)
 
   ctx.clearRect(0, 0, w, h);
 
-  // 1. Draw Base Dark Sphere Disc (New Moon Dark Shadow Base)
+  // 1. Base Dark Sphere Disc
   ctx.save();
   ctx.beginPath();
   ctx.arc(cx, cy, r, 0, Math.PI * 2);
@@ -134,28 +134,44 @@ function render3DMoonCanvas(moonInfo) {
     ctx.fill();
   });
 
-  // 2. Compute Illumination Fraction (0.0 = New Moon, 1.0 = Full Moon)
-  const illumFraction = (1 - Math.cos(phaseRatio * 2 * Math.PI)) / 2;
+  // 2. Compute Illumination Fraction f in [0.0, 1.0]
+  const f = (1 - Math.cos(phaseRatio * 2 * Math.PI)) / 2;
 
-  // Render Illuminated Geometry IF NOT NEW MOON (illumFraction > 0.02)
-  if (illumFraction > 0.02) {
+  // Render Illuminated Slice IF NOT NEW MOON (f > 0.01)
+  if (f > 0.01) {
     ctx.beginPath();
 
-    if (phaseRatio >= 0.48 && phaseRatio <= 0.52) {
-      // FULL MOON: Draw 100% Full White Circle!
+    if (f >= 0.98) {
+      // FULL MOON: Full Illuminated Circle
       ctx.arc(cx, cy, r, 0, Math.PI * 2);
-    } else if (phaseRatio < 0.5) {
-      // WAXING PHASES (Light on RIGHT side)
+    } else if (phaseRatio <= 0.5) {
+      // WAXING PHASES (Light grows on RIGHT side)
       ctx.arc(cx, cy, r, -Math.PI / 2, Math.PI / 2, false); // Right outer arc
 
-      const xFactor = Math.cos(phaseRatio * 2 * Math.PI);
-      ctx.ellipse(cx, cy, Math.abs(r * xFactor), r, 0, Math.PI / 2, -Math.PI / 2, xFactor < 0);
+      const offset = r * (1 - 2 * f);
+      const rx = Math.abs(offset);
+
+      if (offset >= 0) {
+        // Waxing Crescent (0 < f < 0.5): Inner terminator curves inward to the right
+        ctx.ellipse(cx, cy, rx, r, 0, Math.PI / 2, -Math.PI / 2, true);
+      } else {
+        // Waxing Gibbous (0.5 < f < 1): Inner terminator extends outward to the left
+        ctx.ellipse(cx, cy, rx, r, 0, Math.PI / 2, -Math.PI / 2, false);
+      }
     } else {
-      // WANING PHASES (Light on LEFT side)
+      // WANING PHASES (Light recedes on LEFT side)
       ctx.arc(cx, cy, r, Math.PI / 2, -Math.PI / 2, false); // Left outer arc
 
-      const xFactor = Math.cos(phaseRatio * 2 * Math.PI);
-      ctx.ellipse(cx, cy, Math.abs(r * xFactor), r, 0, -Math.PI / 2, Math.PI / 2, xFactor > 0);
+      const offset = r * (1 - 2 * (1 - f));
+      const rx = Math.abs(offset);
+
+      if (offset >= 0) {
+        // Waning Gibbous: Inner terminator extends outward to the right
+        ctx.ellipse(cx, cy, rx, r, 0, -Math.PI / 2, Math.PI / 2, true);
+      } else {
+        // Waning Crescent: Inner terminator curves inward to the left
+        ctx.ellipse(cx, cy, rx, r, 0, -Math.PI / 2, Math.PI / 2, false);
+      }
     }
 
     ctx.closePath();
@@ -181,11 +197,11 @@ function render3DMoonCanvas(moonInfo) {
     ctx.restore();
   }
 
-  // 3. Subtle Outer Atmosphere Rim Glow (Scales with illumination)
-  if (illumFraction > 0.05) {
+  // 3. Subtle Outer Atmosphere Rim Glow
+  if (f > 0.05) {
     ctx.beginPath();
     ctx.arc(cx, cy, r, 0, Math.PI * 2);
-    ctx.strokeStyle = `rgba(0, 242, 254, ${0.45 * illumFraction})`;
+    ctx.strokeStyle = `rgba(0, 242, 254, ${0.45 * f})`;
     ctx.lineWidth = 3;
     ctx.stroke();
   }
