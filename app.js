@@ -1,5 +1,5 @@
-// app.js — LUNA GLOW Marine Angler & Astronomical Observatory Engine v9
-// Multi-Audience Dual View, Unified Moon Phase Presets, Live Open-Meteo API & Solunar Engine
+// app.js — LUNA GLOW Marine Angler & Astronomical Observatory Engine v10
+// Physically Accurate Lunar Phase Terminator Renderer & Dual View Solunar Engine
 
 const LUNAR_MONTH = 29.53058867;
 const KNOWN_NEW_MOON = new Date(Date.UTC(2000, 0, 6, 18, 14, 0));
@@ -7,7 +7,6 @@ const KNOWN_NEW_MOON = new Date(Date.UTC(2000, 0, 6, 18, 14, 0));
 let activeSeaMode = 'med'; // 'med' or 'malaysia'
 let activeViewMode = 'angler'; // 'angler' or 'astronomy'
 let activeDepthFilter = 'all'; // 'all', 'shallow', 'reef', 'deep'
-let isCrimsonMode = false;
 let currentDate = new Date();
 let medDatabase = [];
 let medSpeciesImages = [];
@@ -15,18 +14,6 @@ let malaysiaDatabase = [];
 let liveMarineData = null;
 let isTimelapsePlaying = false;
 let timelapseTimer = null;
-
-const UPCOMING_CRIMSON_MOONS = [
-  { date: new Date(2026, 7, 28), name: "August 28, 2026 (Perigee Eclipse)", note: "Super Moon Eclipse Surge — 16 Days Ahead" },
-  { date: new Date(2027, 1, 20), name: "February 20, 2027 (Winter Eclipse)", note: "Deep Reef Surge — 6 Months Ahead" },
-  { date: new Date(2027, 6, 18), name: "July 18, 2027 (Mid-Summer Eclipse)", note: "Pelagic & Tuna Syzygy Alignment — 11 Months Ahead" },
-  { date: new Date(2028, 0, 12), name: "January 12, 2028 (Winter Solstice Eclipse)", note: "Winter Inshore & Cephalopod Surge — 1.4 Years Ahead" },
-  { date: new Date(2028, 6, 6),  name: "July 6, 2028 (Summer Lunar Eclipse)", note: "Summer Dentex & Amberjack Frenzy — 1.9 Years Ahead" },
-  { date: new Date(2028, 11, 31), name: "December 31, 2028 (NEW YEAR'S EVE TOTAL BLOOD MOON)", note: "Rare New Year's Eve Total Blood Moon! — 2.4 Years Ahead" },
-  { date: new Date(2029, 5, 26), name: "June 26, 2029 (MID-SUMMER TOTAL BLOOD MOON)", note: "Rare Mid-Summer Total Blood Moon — 2.9 Years Ahead" },
-  { date: new Date(2029, 11, 20), name: "December 20, 2029 (WINTER TOTAL BLOOD MOON)", note: "Solstice Total Eclipse Surge — 3.4 Years Ahead" }
-];
-let crimsonIndex = 0;
 
 // Fetch Live Internet Marine API Data
 async function fetchLiveInternetMarineData(seaMode) {
@@ -70,7 +57,7 @@ async function loadDatabases() {
   }
 }
 
-// Moon Phase Mathematics
+// Moon Phase Calculations
 function calculateMoonPhase(date = new Date()) {
   const diffDays = (date.getTime() - KNOWN_NEW_MOON.getTime()) / (1000 * 60 * 60 * 24);
   let age = diffDays % LUNAR_MONTH;
@@ -94,7 +81,8 @@ function calculateMoonPhase(date = new Date()) {
     age: age.toFixed(1),
     illumination: illumination.toFixed(1),
     phaseName,
-    distance: distance.toLocaleString()
+    distance: distance.toLocaleString(),
+    rawAge: age
   };
 }
 
@@ -111,7 +99,7 @@ function findNextMoonPhaseDate(fromDate, targetPhase) {
   return new Date(fromDate.getTime() + 14 * 24 * 60 * 60 * 1000);
 }
 
-// 3D Moon Canvas Rendering
+// PHYSICALLY ACCURATE LUNAR TERMINATOR RENDERER (Angle of Reflection & Shadow Curve!)
 function render3DMoonCanvas(moonInfo) {
   const canvas = document.getElementById('moon-canvas');
   if (!canvas) return;
@@ -122,48 +110,70 @@ function render3DMoonCanvas(moonInfo) {
   const cy = h / 2;
   const r = 130;
 
+  const age = parseFloat(moonInfo.rawAge || moonInfo.age);
+  const phaseRatio = (age % LUNAR_MONTH) / LUNAR_MONTH; // 0 to 1
+
   ctx.clearRect(0, 0, w, h);
 
-  // Background Sphere Shadow
+  // 1. Draw Base Dark Sphere Disc
   ctx.save();
   ctx.beginPath();
   ctx.arc(cx, cy, r, 0, Math.PI * 2);
-  ctx.fillStyle = '#0a0d1a';
+  ctx.fillStyle = '#080d1e';
   ctx.fill();
 
-  // Moon Texture Base Gradient
-  const illumFrac = parseFloat(moonInfo.illumination) / 100;
-  const grad = ctx.createRadialGradient(cx - r*0.3, cy - r*0.3, r*0.1, cx, cy, r);
-  
-  if (isCrimsonMode) {
-    grad.addColorStop(0, '#ff4d6d');
-    grad.addColorStop(0.5, '#cc0033');
-    grad.addColorStop(1, '#4a0011');
-  } else {
-    grad.addColorStop(0, '#ffffff');
-    grad.addColorStop(0.6, '#cbd5e1');
-    grad.addColorStop(1, '#475569');
-  }
-
-  ctx.beginPath();
-  ctx.arc(cx, cy, r, 0, Math.PI * 2);
-  ctx.fillStyle = grad;
-  ctx.globalAlpha = Math.max(0.15, illumFrac);
-  ctx.fill();
-
-  // Draw Craters
-  ctx.globalAlpha = isCrimsonMode ? 0.35 : 0.25;
-  ctx.fillStyle = isCrimsonMode ? '#28000a' : '#1e293b';
-  
-  const craterList = [
+  // Dark Base Craters
+  ctx.fillStyle = '#11182c';
+  const craters = [
     {x: -40, y: -30, r: 22}, {x: 20, y: -50, r: 16}, {x: 50, y: 20, r: 28},
     {x: -20, y: 40, r: 18}, {x: 10, y: 60, r: 14}, {x: -60, y: 10, r: 20}
   ];
-  craterList.forEach(c => {
+  craters.forEach(c => {
     ctx.beginPath();
     ctx.arc(cx + c.x, cy + c.y, c.r, 0, Math.PI * 2);
     ctx.fill();
   });
+
+  // 2. Render Illuminated Portion with Curved Mathematical Terminator Line
+  // cosTerm ranges from +1 (New) -> 0 (1st Qtr / 3rd Qtr) -> -1 (Full)
+  const cosTerm = Math.cos(phaseRatio * 2 * Math.PI);
+
+  ctx.beginPath();
+  if (phaseRatio <= 0.5) {
+    // WAXING PHASES (Light comes from RIGHT side)
+    // Outer semi-circle from top (-pi/2) to bottom (+pi/2) along right edge
+    ctx.arc(cx, cy, r, -Math.PI / 2, Math.PI / 2, false);
+    // Elliptical terminator curve returning from bottom to top
+    ctx.ellipse(cx, cy, Math.abs(r * cosTerm), r, 0, Math.PI / 2, -Math.PI / 2, cosTerm < 0);
+  } else {
+    // WANING PHASES (Light recedes to LEFT side)
+    // Outer semi-circle from top (-pi/2) to bottom (+pi/2) along left edge
+    ctx.arc(cx, cy, r, -Math.PI / 2, Math.PI / 2, true);
+    // Elliptical terminator curve returning from bottom to top
+    ctx.ellipse(cx, cy, Math.abs(r * cosTerm), r, 0, Math.PI / 2, -Math.PI / 2, cosTerm > 0);
+  }
+  ctx.closePath();
+
+  // Radial Lighting Gradient for Spherical 3D Volume
+  const grad = ctx.createRadialGradient(cx - r * 0.2, cy - r * 0.2, r * 0.1, cx, cy, r);
+  grad.addColorStop(0, '#ffffff');
+  grad.addColorStop(0.6, '#cbd5e1');
+  grad.addColorStop(1, '#64748b');
+
+  ctx.fillStyle = grad;
+  ctx.fill();
+
+  // Draw Illuminated Craters clipped to lit shape
+  ctx.save();
+  ctx.clip();
+  ctx.fillStyle = 'rgba(71, 85, 105, 0.35)';
+  craters.forEach(c => {
+    ctx.beginPath();
+    ctx.arc(cx + c.x, cy + c.y, c.r, 0, Math.PI * 2);
+    ctx.fill();
+  });
+  ctx.restore();
+
   ctx.restore();
 }
 
@@ -185,19 +195,12 @@ function renderSeasonalSpeciesForDate(date) {
   }
 
   const headerDiv = document.createElement('div');
-  headerDiv.style.cssText = "margin-bottom: 0.8rem; font-size:0.85rem; font-weight:700;";
+  headerDiv.style.cssText = "margin-bottom: 0.8rem; font-size:0.85rem; font-weight:700; color:var(--accent-gold);";
   
   const seaLabel = activeSeaMode === 'malaysia' ? '🇲🇾 MALAYSIAN SEAS' : '🌊 MEDITERRANEAN SEA';
   const depthTag = activeDepthFilter !== 'all' ? ` [${activeDepthFilter.toUpperCase()} HABITAT]` : '';
 
-  if (isCrimsonMode) {
-    const cObj = UPCOMING_CRIMSON_MOONS[crimsonIndex];
-    headerDiv.style.color = "var(--accent-crimson)";
-    headerDiv.innerHTML = `🩸 <b>${seaLabel}${depthTag} — CRIMSON ECLIPSE TARGETS (${cObj.name.toUpperCase()}):</b>`;
-  } else {
-    headerDiv.style.color = "var(--accent-gold)";
-    headerDiv.innerHTML = `🎣 <b>${seaLabel}${depthTag} — ${activeSpecies.length} Target Species in Season for ${mName}:</b>`;
-  }
+  headerDiv.innerHTML = `🎣 <b>${seaLabel}${depthTag} — ${activeSpecies.length} Target Species in Season for ${mName}:</b>`;
   container.appendChild(headerDiv);
 
   if (activeSpecies.length === 0) {
@@ -212,17 +215,12 @@ function renderSeasonalSpeciesForDate(date) {
 
     const card = document.createElement('div');
     card.className = 'species-card';
-    if (isCrimsonMode) {
-      card.style.borderColor = "rgba(255, 51, 102, 0.4)";
-      card.style.background = "rgba(45, 10, 20, 0.4)";
-    }
-
     card.innerHTML = `
       ${imgHtml}
       <div class="species-info">
         <div style="display:flex; justify-content:space-between; align-items:center;">
-          <div class="species-name" style="${isCrimsonMode ? 'color:var(--accent-crimson);' : ''}">${sp.name}</div>
-          <span style="font-size:0.7rem; background:${isCrimsonMode ? 'rgba(255,51,102,0.2)' : 'rgba(242,201,76,0.15)'}; border:1px solid ${isCrimsonMode ? 'var(--accent-crimson)' : 'var(--accent-gold)'}; color:${isCrimsonMode ? 'var(--accent-crimson)' : 'var(--accent-gold)'}; padding:0.2rem 0.6rem; border-radius:10px; font-weight:700;">${isCrimsonMode ? '🩸 ECLIPSE ACTIVE' : '🔥 PEAK IN ' + mName.toUpperCase()}</span>
+          <div class="species-name">${sp.name}</div>
+          <span style="font-size:0.7rem; background:rgba(242,201,76,0.15); border:1px solid var(--accent-gold); color:var(--accent-gold); padding:0.2rem 0.6rem; border-radius:10px; font-weight:700;">🔥 PEAK IN ${mName.toUpperCase()}</span>
         </div>
         <div class="species-latin">${sp.scientificName}</div>
         <div class="species-meta-row">
@@ -230,7 +228,7 @@ function renderSeasonalSpeciesForDate(date) {
           <span>🌡️ ${sp.idealSST}</span>
           <span>📏 Depth: ${sp.depth}</span>
         </div>
-        <div class="species-desc"><b>Tactics:</b> ${isCrimsonMode ? 'Target deep structure & current rips where predators ambush disoriented baitfish during 90-min eclipse shadow.' : sp.tactics}</div>
+        <div class="species-desc"><b>Tactics:</b> ${sp.tactics}</div>
         ${riggingTxt}
       </div>
     `;
@@ -238,7 +236,7 @@ function renderSeasonalSpeciesForDate(date) {
   });
 }
 
-// Calculate Solunar Scores
+// Solunar Engine
 function calculateSeaSolunar(date = new Date(), moonData) {
   const age = parseFloat(moonData.age);
   const month = date.getMonth();
@@ -277,12 +275,6 @@ function calculateSeaSolunar(date = new Date(), moonData) {
     }
   }
 
-  if (isCrimsonMode) {
-    score = 99;
-    const cObj = UPCOMING_CRIMSON_MOONS[crimsonIndex];
-    seasonTxt = `🩸 ECLIPSE #${crimsonIndex + 1}: ${cObj.name}`;
-  }
-
   return { score, sstTxt, seasonTxt, baroTxt, swellTxt };
 }
 
@@ -300,9 +292,9 @@ function updateView(date = new Date()) {
   document.getElementById('illum-val').textContent = `${moonInfo.illumination}%`;
   document.getElementById('age-val').textContent = `${moonInfo.age} days`;
   document.getElementById('dist-val').textContent = `${moonInfo.distance} km`;
-  document.getElementById('phase-badge').textContent = isCrimsonMode ? "🩸 CRIMSON ECLIPSE" : moonInfo.phaseName.toUpperCase();
+  document.getElementById('phase-badge').textContent = moonInfo.phaseName.toUpperCase();
 
-  // Render 3D Canvas
+  // Render 3D Moon Canvas with Realistic Terminator Curve
   render3DMoonCanvas(moonInfo);
 
   // Calculate Solunar & Conditions
@@ -360,44 +352,21 @@ function initCosmicCanvas() {
   anim();
 }
 
-// Setup Event Listeners
+// Event Setup
 function setupEvents() {
-  // UNIFIED MOON PHASE PRESETS BAR (All Presets Grouped Together!)
+  // Preset Buttons (Full Moon, New Moon, Supermoon)
   document.querySelectorAll('.preset-btn').forEach(btn => {
-    btn.addEventListener('click', (e) => {
+    btn.addEventListener('click', () => {
       const preset = btn.dataset.preset;
-
       document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
 
-      if (preset === 'crimson') {
-        isCrimsonMode = true;
-        document.body.classList.add('crimson-theme');
-        document.getElementById('crimson-sub-controls').classList.remove('hidden');
-        currentDate = UPCOMING_CRIMSON_MOONS[crimsonIndex].date;
-      } else {
-        isCrimsonMode = false;
-        document.body.classList.remove('crimson-theme');
-        document.getElementById('crimson-sub-controls').classList.add('hidden');
-        currentDate = findNextMoonPhaseDate(currentDate, preset);
-      }
+      currentDate = findNextMoonPhaseDate(currentDate, preset);
 
-      // GSAP Pulse Animation on Canvas
-      gsap.fromTo('#moon-canvas', { scale: 0.8, opacity: 0.5 }, { scale: 1, opacity: 1, duration: 0.5, ease: 'back.out(1.7)' });
+      gsap.fromTo('#moon-canvas', { scale: 0.85, opacity: 0.7 }, { scale: 1, opacity: 1, duration: 0.4, ease: 'power2.out' });
       updateView(currentDate);
     });
   });
-
-  // Crimson Next Cycle Button
-  const nextCrimsonBtn = document.getElementById('next-crimson-btn');
-  if (nextCrimsonBtn) {
-    nextCrimsonBtn.addEventListener('click', () => {
-      crimsonIndex = (crimsonIndex + 1) % UPCOMING_CRIMSON_MOONS.length;
-      currentDate = UPCOMING_CRIMSON_MOONS[crimsonIndex].date;
-      document.getElementById('crimson-index-tag').textContent = `Eclipse #${crimsonIndex + 1} of ${UPCOMING_CRIMSON_MOONS.length}`;
-      updateView(currentDate);
-    });
-  }
 
   // Dual View Mode Switcher: Angler View vs Astronomy View
   const btnAngler = document.getElementById('btn-view-angler');
@@ -467,9 +436,6 @@ function setupEvents() {
   const todayBtn = document.getElementById('today-btn');
   if (todayBtn) {
     todayBtn.addEventListener('click', () => {
-      isCrimsonMode = false;
-      document.body.classList.remove('crimson-theme');
-      document.getElementById('crimson-sub-controls').classList.add('hidden');
       updateView(new Date());
     });
   }
