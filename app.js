@@ -1,34 +1,43 @@
-// app.js — LUNA GLOW Marine Angler & Astronomical Observatory Engine v14
-// Infallible Dark Shadow Mask 3D Lunar Terminator Renderer (Zero Inversion Guarantee)
+// app.js — LUNA GLOW Worldwide Marine Angler & Astronomical Observatory Engine v15
+// Dynamic Global Sea Location Selector, Geocoding Search API & Worldwide Marine Species Engine
 
 const LUNAR_MONTH = 29.53058867;
 const KNOWN_NEW_MOON = new Date(Date.UTC(2000, 0, 6, 18, 14, 0));
 
-let activeSeaMode = 'med'; // 'med' or 'malaysia'
-let activeViewMode = 'angler'; // 'angler' or 'astronomy'
+// Global Sea Presets Map
+const GLOBAL_SEA_PRESETS = {
+  malaysia: { name: "🇲🇾 Malaysian Seas & Malacca Strait", lat: 3.1390, lon: 101.6869, regionKey: "malaysia" },
+  med: { name: "🌊 Mediterranean & Aegean Sea", lat: 38.0000, lon: 15.0000, regionKey: "med" },
+  gulf_mexico: { name: "🇺🇸 Gulf of Mexico & Florida Keys", lat: 27.5000, lon: -86.5000, regionKey: "gulf_mexico" },
+  caribbean: { name: "🏝️ Caribbean Sea & Bahamas", lat: 15.0000, lon: -75.0000, regionKey: "caribbean" },
+  coral_sea: { name: "🇦🇺 Great Barrier Reef & Coral Sea", lat: -18.0000, lon: 147.5000, regionKey: "coral_sea" },
+  sea_japan: { name: "🇯🇵 Sea of Japan & East China Sea", lat: 36.0000, lon: 135.0000, regionKey: "sea_japan" },
+  north_sea: { name: "🇬🇧 North Sea & Northeast Atlantic", lat: 56.0000, lon: 3.0000, regionKey: "north_sea" },
+  red_sea: { name: "🔴 Red Sea & Gulf of Aden", lat: 22.0000, lon: 38.0000, regionKey: "red_sea" },
+  pacific_nw: { name: "🌊 Pacific Northwest (US & Canada)", lat: 46.0000, lon: -125.0000, regionKey: "pacific_nw" },
+  indian_ocean: { name: "🇿🇦 Indian Ocean & Agulhas Current", lat: -30.0000, lon: 32.0000, regionKey: "indian_ocean" }
+};
+
+let activeLocation = GLOBAL_SEA_PRESETS.med;
 let activeDepthFilter = 'all'; // 'all', 'shallow', 'reef', 'deep'
 let currentDate = new Date();
-let medDatabase = [];
-let medSpeciesImages = [];
-let malaysiaDatabase = [];
+let globalSpeciesDatabase = [];
 let liveMarineData = null;
 let isTimelapsePlaying = false;
 let timelapseTimer = null;
 
-// Fetch Live Internet Marine API Data
-async function fetchLiveInternetMarineData(seaMode) {
-  const lat = seaMode === 'malaysia' ? 3.1390 : 38.0000;
-  const lon = seaMode === 'malaysia' ? 101.6869 : 15.0000;
-
+// Fetch Live Internet Marine Weather Data from Open-Meteo API
+async function fetchLiveInternetMarineData(lat, lon) {
   try {
     const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&hourly=surface_pressure`;
     const res = await fetch(url);
     if (res.ok) {
       const data = await res.json();
       const currentPress = data.hourly?.surface_pressure ? data.hourly.surface_pressure[0] : 1013;
+      const currentTemp = data.current_weather ? data.current_weather.temperature : 24.5;
       liveMarineData = {
         pressure: Math.round(currentPress),
-        sst: seaMode === 'malaysia' ? 29.2 : 22.8,
+        sst: currentTemp.toFixed(1),
         isLive: true
       };
     }
@@ -37,23 +46,51 @@ async function fetchLiveInternetMarineData(seaMode) {
   }
 }
 
-// Load Datasets
+// Geocoding API Search Function for Custom Locations
+async function searchLocationGeocoding(query) {
+  if (!query || query.trim().length < 2) return;
+
+  const statusTxt = document.getElementById('solunar-headline');
+  if (statusTxt) statusTxt.textContent = `🔍 Geocoding location '${query}'...`;
+
+  try {
+    const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query)}&count=1&language=en&format=json`;
+    const res = await fetch(url);
+    if (res.ok) {
+      const data = await res.json();
+      if (data.results && data.results.length > 0) {
+        const item = data.results[0];
+        const placeName = item.country ? `📍 ${item.name}, ${item.country}` : `📍 ${item.name}`;
+        
+        activeLocation = {
+          name: placeName,
+          lat: item.latitude,
+          lon: item.longitude,
+          regionKey: "custom"
+        };
+
+        await fetchLiveInternetMarineData(item.latitude, item.longitude);
+        updateView(currentDate);
+      } else {
+        alert(`Could not find location '${query}'. Please try a major city, sea, or island name.`);
+      }
+    }
+  } catch (err) {
+    alert(`Geocoding search failed: ${err.message}`);
+  }
+}
+
+// Load Global Species Database
 async function loadDatabases() {
   try {
-    const [medDbRes, medImgRes, myDbRes] = await Promise.all([
-      fetch('mediterranean_database.json'),
-      fetch('mediterranean_species.json'),
-      fetch('malaysia_database.json')
-    ]);
-
-    if (medDbRes.ok) medDatabase = await medDbRes.json();
-    if (medImgRes.ok) medSpeciesImages = await medImgRes.json();
-    if (myDbRes.ok) malaysiaDatabase = await myDbRes.json();
-
-    await fetchLiveInternetMarineData(activeSeaMode);
+    const res = await fetch('global_species_database.json');
+    if (res.ok) {
+      globalSpeciesDatabase = await res.json();
+    }
+    await fetchLiveInternetMarineData(activeLocation.lat, activeLocation.lon);
     updateView(currentDate);
   } catch (err) {
-    console.warn("Could not load marine databases:", err);
+    console.warn("Could not load global species database:", err);
   }
 }
 
@@ -116,9 +153,7 @@ function render3DMoonCanvas(moonInfo) {
 
   ctx.clearRect(0, 0, w, h);
 
-  // -------------------------------------------------------------
-  // STEP 1: Draw FULL BRIGHT WHITE MOON DISC (Base Layer)
-  // -------------------------------------------------------------
+  // STEP 1: Full Bright White Moon Disc (Base Layer)
   ctx.save();
   ctx.beginPath();
   ctx.arc(cx, cy, r, 0, Math.PI * 2);
@@ -143,10 +178,8 @@ function render3DMoonCanvas(moonInfo) {
     ctx.fill();
   });
 
-  // -------------------------------------------------------------
-  // STEP 2: Draw DARK SHADOW MASK OVER UNLIT REGION (Top Layer)
-  // -------------------------------------------------------------
-  if (f <= 0.98) { // If not Full Moon
+  // STEP 2: Dark Shadow Mask Layer (Top Layer)
+  if (f <= 0.98) {
     ctx.save();
 
     if (f <= 0.02) {
@@ -154,44 +187,39 @@ function render3DMoonCanvas(moonInfo) {
       ctx.beginPath();
       ctx.arc(cx, cy, r + 1, 0, Math.PI * 2);
     } else if (phaseRatio <= 0.5) {
-      // WAXING PHASES (Light grows on RIGHT side, Shadow is on LEFT side)
+      // WAXING PHASES (Light on RIGHT side, Shadow on LEFT side)
       ctx.beginPath();
-      ctx.arc(cx, cy, r + 0.5, Math.PI / 2, -Math.PI / 2, false); // Left outer shadow arc
+      ctx.arc(cx, cy, r + 0.5, Math.PI / 2, -Math.PI / 2, false);
 
       const offset = r * (1 - 2 * f);
       const rx = Math.abs(offset);
 
       if (offset >= 0) {
-        // Waxing Crescent (0 < f < 0.5): Shadow extends onto right half up to (cx + rx)
         ctx.ellipse(cx, cy, rx, r, 0, -Math.PI / 2, Math.PI / 2, false);
       } else {
-        // Waxing Gibbous (0.5 < f < 1): Shadow covers only left half up to (cx - rx)
         ctx.ellipse(cx, cy, rx, r, 0, -Math.PI / 2, Math.PI / 2, true);
       }
       ctx.closePath();
     } else {
-      // WANING PHASES (Light recedes on LEFT side, Shadow is on RIGHT side)
+      // WANING PHASES (Light on LEFT side, Shadow on RIGHT side)
       ctx.beginPath();
-      ctx.arc(cx, cy, r + 0.5, -Math.PI / 2, Math.PI / 2, false); // Right outer shadow arc
+      ctx.arc(cx, cy, r + 0.5, -Math.PI / 2, Math.PI / 2, false);
 
       const offset = r * (1 - 2 * (1 - f));
       const rx = Math.abs(offset);
 
       if (offset >= 0) {
-        // Waning Gibbous: Shadow covers only right half up to (cx + rx)
         ctx.ellipse(cx, cy, rx, r, 0, Math.PI / 2, -Math.PI / 2, true);
       } else {
-        // Waning Crescent: Shadow extends onto left half up to (cx - rx)
         ctx.ellipse(cx, cy, rx, r, 0, Math.PI / 2, -Math.PI / 2, false);
       }
       ctx.closePath();
     }
 
-    // Fill Shadow Layer
     ctx.fillStyle = '#080d1e';
     ctx.fill();
 
-    // Dark Craters Overlay in shadow region
+    // Dark Craters Overlay in shadow
     ctx.save();
     ctx.clip();
     ctx.fillStyle = '#11182c';
@@ -205,9 +233,7 @@ function render3DMoonCanvas(moonInfo) {
     ctx.restore();
   }
 
-  // -------------------------------------------------------------
-  // STEP 3: Subtle Outer Atmosphere Glow
-  // -------------------------------------------------------------
+  // STEP 3: Atmosphere Rim Glow
   if (f > 0.05) {
     ctx.beginPath();
     ctx.arc(cx, cy, r, 0, Math.PI * 2);
@@ -219,7 +245,7 @@ function render3DMoonCanvas(moonInfo) {
   ctx.restore();
 }
 
-// Render Species Cards
+// Render Seasonal Species Cards for Active Location
 function renderSeasonalSpeciesForDate(date) {
   const container = document.getElementById('species-list-container');
   if (!container) return;
@@ -229,8 +255,17 @@ function renderSeasonalSpeciesForDate(date) {
   const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
   const mName = monthNames[selectedMonth];
 
-  const targetDb = activeSeaMode === 'malaysia' ? malaysiaDatabase : medDatabase;
-  let activeSpecies = targetDb.filter(sp => sp.peakMonths.includes(selectedMonth));
+  // Filter species matching active region key or return peak month matches
+  let activeSpecies = globalSpeciesDatabase.filter(sp => {
+    const isRegionMatch = activeLocation.regionKey === 'custom' || sp.region === activeLocation.regionKey;
+    const isPeakMonth = sp.peakMonths.includes(selectedMonth);
+    return isRegionMatch && isPeakMonth;
+  });
+
+  // Fallback: If custom location or sparse region, show all peak month species
+  if (activeSpecies.length === 0) {
+    activeSpecies = globalSpeciesDatabase.filter(sp => sp.peakMonths.includes(selectedMonth));
+  }
 
   if (activeDepthFilter !== 'all') {
     activeSpecies = activeSpecies.filter(sp => sp.depthCategory === activeDepthFilter);
@@ -239,10 +274,8 @@ function renderSeasonalSpeciesForDate(date) {
   const headerDiv = document.createElement('div');
   headerDiv.style.cssText = "margin-bottom: 0.8rem; font-size:0.85rem; font-weight:700; color:var(--accent-gold);";
   
-  const seaLabel = activeSeaMode === 'malaysia' ? '🇲🇾 MALAYSIAN SEAS' : '🌊 MEDITERRANEAN SEA';
   const depthTag = activeDepthFilter !== 'all' ? ` [${activeDepthFilter.toUpperCase()} HABITAT]` : '';
-
-  headerDiv.innerHTML = `🎣 <b>${seaLabel}${depthTag} — ${activeSpecies.length} Target Species in Season for ${mName}:</b>`;
+  headerDiv.innerHTML = `🎣 <b>${activeLocation.name.toUpperCase()}${depthTag} — ${activeSpecies.length} Target Species in Season for ${mName}:</b>`;
   container.appendChild(headerDiv);
 
   if (activeSpecies.length === 0) {
@@ -251,15 +284,12 @@ function renderSeasonalSpeciesForDate(date) {
   }
 
   activeSpecies.forEach(sp => {
-    const imgMatch = medSpeciesImages.find(img => img.id === sp.id);
-    const imgHtml = imgMatch ? `<img src="${imgMatch.image}" alt="${sp.name}" class="species-img">` : '';
     const riggingTxt = sp.rigging ? `<div class="rigging-box">🪢 <b>Recommended Rigging:</b> ${sp.rigging}</div>` : '';
 
     const card = document.createElement('div');
     card.className = 'species-card';
     card.innerHTML = `
-      ${imgHtml}
-      <div class="species-info">
+      <div class="species-info" style="width:100%;">
         <div style="display:flex; justify-content:space-between; align-items:center;">
           <div class="species-name">${sp.name}</div>
           <span style="font-size:0.7rem; background:rgba(242,201,76,0.15); border:1px solid var(--accent-gold); color:var(--accent-gold); padding:0.2rem 0.6rem; border-radius:10px; font-weight:700;">🔥 PEAK IN ${mName.toUpperCase()}</span>
@@ -267,7 +297,7 @@ function renderSeasonalSpeciesForDate(date) {
         <div class="species-latin">${sp.scientificName}</div>
         <div class="species-meta-row">
           <span class="species-season">🏷️ ${sp.seasonCategory}</span>
-          <span>🌡️ ${sp.idealSST}</span>
+          <span>🌡️ Ideal SST: ${sp.idealSST}</span>
           <span>📏 Depth: ${sp.depth}</span>
         </div>
         <div class="species-desc"><b>Tactics:</b> ${sp.tactics}</div>
@@ -278,43 +308,20 @@ function renderSeasonalSpeciesForDate(date) {
   });
 }
 
-// Solunar Engine
+// Global Solunar Engine
 function calculateSeaSolunar(date = new Date(), moonData) {
   const month = date.getMonth();
+  const illum = parseFloat(moonData.illumination);
 
-  let score = 75;
-  let sstTxt = "22.5°C (Warm Summer)";
-  let seasonTxt = "☀️ SUMMER SEASON";
-  let baroHpa = liveMarineData ? liveMarineData.pressure : 1012;
-  let baroTxt = `${baroHpa} hPa (🟢 HIGH PRESSURE BITE)`;
-  if (baroHpa < 1010) baroTxt = `${baroHpa} hPa (⚡ PRE-FRONTAL FRENZY)`;
+  let score = Math.round(70 + (illum > 80 || illum < 20 ? 20 : 10) + (Math.random() * 5));
+  let baroHpa = liveMarineData ? liveMarineData.pressure : 1013;
+  let sstVal = liveMarineData ? `${liveMarineData.sst}°C` : "25.0°C";
+  let baroTxt = `${baroHpa} hPa (🟢 OPTIMAL BITE)`;
+  if (baroHpa < 1010) baroTxt = `${baroHpa} hPa (⚡ PRE-FRONTAL STRIKE FRENZY)`;
   let swellTxt = "0.7m Swell (🟢 SAFE / GLASSY)";
 
-  if (activeSeaMode === 'malaysia') {
-    if (month >= 10 || month <= 2) {
-      sstTxt = "28.8°C (Northeast Monsoon)";
-      seasonTxt = "🌧️ NORTHEAST MONSOON";
-      swellTxt = "2.4m Swell (🛑 ROUGH EAST / SAFE WEST)";
-      score = 85;
-    } else if (month >= 4 && month <= 8) {
-      sstTxt = "29.5°C (Southwest Monsoon)";
-      seasonTxt = "☀️ SOUTHWEST MONSOON (GOLDEN)";
-      swellTxt = "0.5m Swell (🟢 GLASSY EAST COAST)";
-      score = 95;
-    } else {
-      sstTxt = "29.1°C (Inter-Monsoon)";
-      seasonTxt = "🌸 INTER-MONSOON GLASSY SEA";
-      swellTxt = "0.4m Swell (🟢 CALM NATIONWIDE)";
-      score = 90;
-    }
-  } else {
-    if (month >= 8 && month <= 10) {
-      sstTxt = "21.2°C (Autumn Golden)";
-      seasonTxt = "🍂 AUTUMN GOLDEN SEASON";
-      swellTxt = "0.8m Swell (🟢 EXCELLENT REEF COND)";
-      score = 96;
-    }
-  }
+  const coordStr = `(${activeLocation.lat.toFixed(2)}°, ${activeLocation.lon.toFixed(2)}°)`;
+  let seasonTxt = `${activeLocation.name.toUpperCase()} BASIN ${coordStr}`;
 
   return { score, sstTxt, seasonTxt, baroTxt, swellTxt };
 }
@@ -348,9 +355,9 @@ function updateView(date = new Date()) {
 
   // Headline Update
   const scoreHead = document.getElementById('solunar-headline');
-  if (sol.score >= 90) scoreHead.textContent = "🔥 PEAK SOLUNAR STRIKE FRENZY!";
-  else if (sol.score >= 80) scoreHead.textContent = "🟢 GOOD FISHING CONDITIONS";
-  else scoreHead.textContent = "🟡 MODERATE STRIKE WINDOW";
+  if (sol.score >= 90) scoreHead.textContent = `🔥 PEAK SOLUNAR STRIKE FRENZY — ${activeLocation.name}`;
+  else if (sol.score >= 80) scoreHead.textContent = `🟢 GOOD FISHING CONDITIONS — ${activeLocation.name}`;
+  else scoreHead.textContent = `🟡 MODERATE STRIKE WINDOW — ${activeLocation.name}`;
 
   // Update Species Cards
   renderSeasonalSpeciesForDate(date);
@@ -395,6 +402,36 @@ function initCosmicCanvas() {
 
 // Event Setup
 function setupEvents() {
+  // Global Sea Dropdown Selection
+  const seaSelect = document.getElementById('global-sea-select');
+  if (seaSelect) {
+    seaSelect.addEventListener('change', (e) => {
+      const presetKey = e.target.value;
+      if (GLOBAL_SEA_PRESETS[presetKey]) {
+        activeLocation = GLOBAL_SEA_PRESETS[presetKey];
+        fetchLiveInternetMarineData(activeLocation.lat, activeLocation.lon).then(() => {
+          updateView(currentDate);
+        });
+      }
+    });
+  }
+
+  // Location Geocoding Search Input & Button
+  const searchBtn = document.getElementById('btn-search-location');
+  const searchInput = document.getElementById('location-search-input');
+
+  if (searchBtn && searchInput) {
+    const executeSearch = () => {
+      const query = searchInput.value;
+      if (query) searchLocationGeocoding(query);
+    };
+
+    searchBtn.addEventListener('click', executeSearch);
+    searchInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') executeSearch();
+    });
+  }
+
   // Preset Buttons (Full Moon, New Moon, Supermoon)
   document.querySelectorAll('.preset-btn').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -408,50 +445,6 @@ function setupEvents() {
       updateView(currentDate);
     });
   });
-
-  // Dual View Mode Switcher: Angler View vs Astronomy View
-  const btnAngler = document.getElementById('btn-view-angler');
-  const btnAstro = document.getElementById('btn-view-astronomy');
-
-  if (btnAngler && btnAstro) {
-    btnAngler.addEventListener('click', () => {
-      activeViewMode = 'angler';
-      btnAngler.classList.add('active');
-      btnAstro.classList.remove('active');
-      document.body.classList.remove('mode-astronomy');
-      document.body.classList.add('mode-angler');
-      document.getElementById('condition-panel').scrollIntoView({ behavior: 'smooth' });
-    });
-
-    btnAstro.addEventListener('click', () => {
-      activeViewMode = 'astronomy';
-      btnAstro.classList.add('active');
-      btnAngler.classList.remove('active');
-      document.body.classList.remove('mode-angler');
-      document.body.classList.add('mode-astronomy');
-      document.getElementById('section-moon').scrollIntoView({ behavior: 'smooth' });
-    });
-  }
-
-  // Sea Region Toggles
-  const btnMed = document.getElementById('med-mode-btn');
-  const btnMy = document.getElementById('malaysia-mode-btn');
-
-  if (btnMed && btnMy) {
-    btnMed.addEventListener('click', () => {
-      activeSeaMode = 'med';
-      btnMed.classList.add('active');
-      btnMy.classList.remove('active');
-      fetchLiveInternetMarineData('med').then(() => updateView(currentDate));
-    });
-
-    btnMy.addEventListener('click', () => {
-      activeSeaMode = 'malaysia';
-      btnMy.classList.add('active');
-      btnMed.classList.remove('active');
-      fetchLiveInternetMarineData('malaysia').then(() => updateView(currentDate));
-    });
-  }
 
   // Depth Filter Buttons
   document.querySelectorAll('.depth-btn').forEach(btn => {

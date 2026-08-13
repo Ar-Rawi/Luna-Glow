@@ -28,16 +28,29 @@
         </div>
       </div>
 
-      <!-- Main Header Controls: Sea Region Switcher -->
+      <!-- Global Sea Location Controls -->
       <div class="nav-controls">
-        <!-- Sea Region Switcher -->
-        <div class="segmented-control sea-switch">
-          <button id="med-mode-btn" class="segment-btn active">
-            🌊 Mediterranean
-          </button>
-          <button id="malaysia-mode-btn" class="segment-btn">
-            🇲🇾 Malaysian Seas
-          </button>
+        <div class="global-location-box">
+          <div class="location-select-wrapper">
+            <span class="loc-icon">🌐</span>
+            <select id="global-sea-select" class="glass-select">
+              <option value="malaysia">🇲🇾 Malaysian Seas & Malacca Strait</option>
+              <option value="med" selected>🌊 Mediterranean & Aegean Sea</option>
+              <option value="gulf_mexico">🇺🇸 Gulf of Mexico & Florida Keys</option>
+              <option value="caribbean">🏝️ Caribbean Sea & Bahamas</option>
+              <option value="coral_sea">🇦🇺 Great Barrier Reef & Coral Sea</option>
+              <option value="sea_japan">🇯🇵 Sea of Japan & East China Sea</option>
+              <option value="north_sea">🇬🇧 North Sea & Northeast Atlantic</option>
+              <option value="red_sea">🔴 Red Sea & Gulf of Aden</option>
+              <option value="pacific_nw">🌊 Pacific Northwest (US & Canada)</option>
+              <option value="indian_ocean">🇿🇦 Indian Ocean & Agulhas Current</option>
+            </select>
+          </div>
+
+          <div class="location-search-wrapper">
+            <input type="text" id="location-search-input" class="glass-input-sm" placeholder="🔍 Search location (e.g. Penang, Miami, Tokyo)...">
+            <button id="btn-search-location" class="glass-btn-sm">Search</button>
+          </div>
         </div>
       </div>
     </header>
