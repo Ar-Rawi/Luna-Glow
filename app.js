@@ -1,5 +1,5 @@
-// app.js — LUNA GLOW Marine Angler & Astronomical Observatory Engine v13
-// Flawless 3D Lunar Terminator Geometry: Waxing Crescent grows from thin arc to Full Moon
+// app.js — LUNA GLOW Marine Angler & Astronomical Observatory Engine v14
+// Infallible Dark Shadow Mask 3D Lunar Terminator Renderer (Zero Inversion Guarantee)
 
 const LUNAR_MONTH = 29.53058867;
 const KNOWN_NEW_MOON = new Date(Date.UTC(2000, 0, 6, 18, 14, 0));
@@ -99,7 +99,7 @@ function findNextMoonPhaseDate(fromDate, targetPhase) {
   return new Date(fromDate.getTime() + 14 * 24 * 60 * 60 * 1000);
 }
 
-// FLAWLESS 3D MOON CANVAS TERMINATOR RENDERER (Crescent grows from thin edge -> Full Moon)
+// INFALLIBLE DARK SHADOW MASK 3D MOON TERMINATOR RENDERER
 function render3DMoonCanvas(moonInfo) {
   const canvas = document.getElementById('moon-canvas');
   if (!canvas) return;
@@ -112,18 +112,27 @@ function render3DMoonCanvas(moonInfo) {
 
   const age = parseFloat(moonInfo.rawAge || moonInfo.age);
   const phaseRatio = (age % LUNAR_MONTH) / LUNAR_MONTH; // 0.0 (New) -> 0.5 (Full) -> 1.0 (New)
+  const f = (1 - Math.cos(phaseRatio * 2 * Math.PI)) / 2; // Illumination fraction in [0.0, 1.0]
 
   ctx.clearRect(0, 0, w, h);
 
-  // 1. Base Dark Sphere Disc
+  // -------------------------------------------------------------
+  // STEP 1: Draw FULL BRIGHT WHITE MOON DISC (Base Layer)
+  // -------------------------------------------------------------
   ctx.save();
   ctx.beginPath();
   ctx.arc(cx, cy, r, 0, Math.PI * 2);
-  ctx.fillStyle = '#080d1e';
+
+  const brightGrad = ctx.createRadialGradient(cx - r * 0.2, cy - r * 0.2, r * 0.1, cx, cy, r);
+  brightGrad.addColorStop(0, '#ffffff');
+  brightGrad.addColorStop(0.55, '#cbd5e1');
+  brightGrad.addColorStop(1, '#64748b');
+
+  ctx.fillStyle = brightGrad;
   ctx.fill();
 
-  // Dark Base Craters
-  ctx.fillStyle = '#11182c';
+  // Lit Craters
+  ctx.fillStyle = 'rgba(71, 85, 105, 0.35)';
   const craters = [
     {x: -40, y: -30, r: 22}, {x: 20, y: -50, r: 16}, {x: 50, y: 20, r: 28},
     {x: -20, y: 40, r: 18}, {x: 10, y: 60, r: 14}, {x: -60, y: 10, r: 20}
@@ -134,70 +143,71 @@ function render3DMoonCanvas(moonInfo) {
     ctx.fill();
   });
 
-  // 2. Compute Illumination Fraction f in [0.0, 1.0]
-  const f = (1 - Math.cos(phaseRatio * 2 * Math.PI)) / 2;
+  // -------------------------------------------------------------
+  // STEP 2: Draw DARK SHADOW MASK OVER UNLIT REGION (Top Layer)
+  // -------------------------------------------------------------
+  if (f <= 0.98) { // If not Full Moon
+    ctx.save();
 
-  // Render Illuminated Slice IF NOT NEW MOON (f > 0.01)
-  if (f > 0.01) {
-    ctx.beginPath();
-
-    if (f >= 0.98) {
-      // FULL MOON: Full Illuminated Circle
-      ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    if (f <= 0.02) {
+      // NEW MOON: Full Dark Shadow Mask (100% Dark)
+      ctx.beginPath();
+      ctx.arc(cx, cy, r + 1, 0, Math.PI * 2);
     } else if (phaseRatio <= 0.5) {
-      // WAXING PHASES (Light grows on RIGHT side)
-      ctx.arc(cx, cy, r, -Math.PI / 2, Math.PI / 2, false); // Right outer arc
+      // WAXING PHASES (Light grows on RIGHT side, Shadow is on LEFT side)
+      ctx.beginPath();
+      ctx.arc(cx, cy, r + 0.5, Math.PI / 2, -Math.PI / 2, false); // Left outer shadow arc
 
       const offset = r * (1 - 2 * f);
       const rx = Math.abs(offset);
 
       if (offset >= 0) {
-        // Waxing Crescent (0 < f < 0.5): Inner terminator curves inward to the right
-        ctx.ellipse(cx, cy, rx, r, 0, Math.PI / 2, -Math.PI / 2, true);
+        // Waxing Crescent (0 < f < 0.5): Shadow extends onto right half up to (cx + rx)
+        ctx.ellipse(cx, cy, rx, r, 0, -Math.PI / 2, Math.PI / 2, false);
       } else {
-        // Waxing Gibbous (0.5 < f < 1): Inner terminator extends outward to the left
-        ctx.ellipse(cx, cy, rx, r, 0, Math.PI / 2, -Math.PI / 2, false);
+        // Waxing Gibbous (0.5 < f < 1): Shadow covers only left half up to (cx - rx)
+        ctx.ellipse(cx, cy, rx, r, 0, -Math.PI / 2, Math.PI / 2, true);
       }
+      ctx.closePath();
     } else {
-      // WANING PHASES (Light recedes on LEFT side)
-      ctx.arc(cx, cy, r, Math.PI / 2, -Math.PI / 2, false); // Left outer arc
+      // WANING PHASES (Light recedes on LEFT side, Shadow is on RIGHT side)
+      ctx.beginPath();
+      ctx.arc(cx, cy, r + 0.5, -Math.PI / 2, Math.PI / 2, false); // Right outer shadow arc
 
       const offset = r * (1 - 2 * (1 - f));
       const rx = Math.abs(offset);
 
       if (offset >= 0) {
-        // Waning Gibbous: Inner terminator extends outward to the right
-        ctx.ellipse(cx, cy, rx, r, 0, -Math.PI / 2, Math.PI / 2, true);
+        // Waning Gibbous: Shadow covers only right half up to (cx + rx)
+        ctx.ellipse(cx, cy, rx, r, 0, Math.PI / 2, -Math.PI / 2, true);
       } else {
-        // Waning Crescent: Inner terminator curves inward to the left
-        ctx.ellipse(cx, cy, rx, r, 0, -Math.PI / 2, Math.PI / 2, false);
+        // Waning Crescent: Shadow extends onto left half up to (cx - rx)
+        ctx.ellipse(cx, cy, rx, r, 0, Math.PI / 2, -Math.PI / 2, false);
       }
+      ctx.closePath();
     }
 
-    ctx.closePath();
-
-    // Bright Moon Sphere Gradient
-    const grad = ctx.createRadialGradient(cx - r * 0.2, cy - r * 0.2, r * 0.1, cx, cy, r);
-    grad.addColorStop(0, '#ffffff');
-    grad.addColorStop(0.55, '#cbd5e1');
-    grad.addColorStop(1, '#64748b');
-
-    ctx.fillStyle = grad;
+    // Fill Shadow Layer
+    ctx.fillStyle = '#080d1e';
     ctx.fill();
 
-    // Lit Craters Overlay (Clipped to illuminated area)
+    // Dark Craters Overlay in shadow region
     ctx.save();
     ctx.clip();
-    ctx.fillStyle = 'rgba(71, 85, 105, 0.35)';
+    ctx.fillStyle = '#11182c';
     craters.forEach(c => {
       ctx.beginPath();
       ctx.arc(cx + c.x, cy + c.y, c.r, 0, Math.PI * 2);
       ctx.fill();
     });
     ctx.restore();
+
+    ctx.restore();
   }
 
-  // 3. Subtle Outer Atmosphere Rim Glow
+  // -------------------------------------------------------------
+  // STEP 3: Subtle Outer Atmosphere Glow
+  // -------------------------------------------------------------
   if (f > 0.05) {
     ctx.beginPath();
     ctx.arc(cx, cy, r, 0, Math.PI * 2);
@@ -325,7 +335,7 @@ function updateView(date = new Date()) {
   document.getElementById('dist-val').textContent = `${moonInfo.distance} km`;
   document.getElementById('phase-badge').textContent = moonInfo.phaseName.toUpperCase();
 
-  // Render 3D Moon Canvas with Realistic Terminator Curve
+  // Render 3D Moon Canvas with Infallible Shadow Mask
   render3DMoonCanvas(moonInfo);
 
   // Calculate Solunar & Conditions
