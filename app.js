@@ -1,5 +1,5 @@
-// app.js — LUNA GLOW Marine Angler & Astronomical Observatory Engine v11
-// Physically Accurate Lunar Phase Terminator Renderer & Dual View Solunar Engine
+// app.js — LUNA GLOW Marine Angler & Astronomical Observatory Engine v12
+// Infallible 3D Lunar Terminator & Moon Phase Renderer (New Moon = Dark, Full Moon = Bright)
 
 const LUNAR_MONTH = 29.53058867;
 const KNOWN_NEW_MOON = new Date(Date.UTC(2000, 0, 6, 18, 14, 0));
@@ -99,7 +99,7 @@ function findNextMoonPhaseDate(fromDate, targetPhase) {
   return new Date(fromDate.getTime() + 14 * 24 * 60 * 60 * 1000);
 }
 
-// PHYSICALLY ACCURATE LUNAR TERMINATOR RENDERER (Angle of Reflection & Dark New Moon Fix!)
+// INFALLIBLE 3D MOON CANVAS TERMINATOR RENDERER (New Moon = 100% Dark, Full Moon = 100% Bright White)
 function render3DMoonCanvas(moonInfo) {
   const canvas = document.getElementById('moon-canvas');
   if (!canvas) return;
@@ -111,7 +111,7 @@ function render3DMoonCanvas(moonInfo) {
   const r = 130;
 
   const age = parseFloat(moonInfo.rawAge || moonInfo.age);
-  const phaseRatio = (age % LUNAR_MONTH) / LUNAR_MONTH; // 0.0 to 1.0
+  const phaseRatio = (age % LUNAR_MONTH) / LUNAR_MONTH; // 0.0 (New) to 0.5 (Full) to 1.0 (New)
 
   ctx.clearRect(0, 0, w, h);
 
@@ -134,49 +134,42 @@ function render3DMoonCanvas(moonInfo) {
     ctx.fill();
   });
 
-  // 2. Render Illuminated Portion (Only when illumination > 1%)
-  const illuminationFraction = (1 - Math.cos(phaseRatio * 2 * Math.PI)) / 2;
+  // 2. Compute Illumination Fraction (0.0 = New Moon, 1.0 = Full Moon)
+  const illumFraction = (1 - Math.cos(phaseRatio * 2 * Math.PI)) / 2;
 
-  if (illuminationFraction > 0.01) {
+  // Render Illuminated Geometry IF NOT NEW MOON (illumFraction > 0.02)
+  if (illumFraction > 0.02) {
     ctx.beginPath();
 
-    const isWaxing = phaseRatio <= 0.5;
-
-    if (isWaxing) {
+    if (phaseRatio >= 0.48 && phaseRatio <= 0.52) {
+      // FULL MOON: Draw 100% Full White Circle!
+      ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    } else if (phaseRatio < 0.5) {
+      // WAXING PHASES (Light on RIGHT side)
       ctx.arc(cx, cy, r, -Math.PI / 2, Math.PI / 2, false); // Right outer arc
+
+      const xFactor = Math.cos(phaseRatio * 2 * Math.PI);
+      ctx.ellipse(cx, cy, Math.abs(r * xFactor), r, 0, Math.PI / 2, -Math.PI / 2, xFactor < 0);
     } else {
+      // WANING PHASES (Light on LEFT side)
       ctx.arc(cx, cy, r, Math.PI / 2, -Math.PI / 2, false); // Left outer arc
-    }
 
-    const xRadius = r * Math.abs(Math.cos(phaseRatio * 2 * Math.PI));
-    const termIsConvexRight = Math.cos(phaseRatio * 2 * Math.PI) > 0;
-
-    if (isWaxing) {
-      if (termIsConvexRight) {
-        ctx.ellipse(cx, cy, xRadius, r, 0, Math.PI / 2, -Math.PI / 2, false);
-      } else {
-        ctx.ellipse(cx, cy, xRadius, r, 0, Math.PI / 2, -Math.PI / 2, true);
-      }
-    } else {
-      if (termIsConvexRight) {
-        ctx.ellipse(cx, cy, xRadius, r, 0, -Math.PI / 2, Math.PI / 2, false);
-      } else {
-        ctx.ellipse(cx, cy, xRadius, r, 0, -Math.PI / 2, Math.PI / 2, true);
-      }
+      const xFactor = Math.cos(phaseRatio * 2 * Math.PI);
+      ctx.ellipse(cx, cy, Math.abs(r * xFactor), r, 0, -Math.PI / 2, Math.PI / 2, xFactor > 0);
     }
 
     ctx.closePath();
 
-    // Lit Sphere Gradient
+    // Bright Moon Sphere Gradient
     const grad = ctx.createRadialGradient(cx - r * 0.2, cy - r * 0.2, r * 0.1, cx, cy, r);
     grad.addColorStop(0, '#ffffff');
-    grad.addColorStop(0.6, '#cbd5e1');
+    grad.addColorStop(0.55, '#cbd5e1');
     grad.addColorStop(1, '#64748b');
 
     ctx.fillStyle = grad;
     ctx.fill();
 
-    // Lit Craters Overlay
+    // Lit Craters Overlay (Clipped to illuminated area)
     ctx.save();
     ctx.clip();
     ctx.fillStyle = 'rgba(71, 85, 105, 0.35)';
@@ -188,12 +181,12 @@ function render3DMoonCanvas(moonInfo) {
     ctx.restore();
   }
 
-  // 3. Subtle Outer Atmosphere Glow
-  if (illuminationFraction > 0.05) {
+  // 3. Subtle Outer Atmosphere Rim Glow (Scales with illumination)
+  if (illumFraction > 0.05) {
     ctx.beginPath();
     ctx.arc(cx, cy, r, 0, Math.PI * 2);
-    ctx.strokeStyle = `rgba(0, 242, 254, ${0.35 * illuminationFraction})`;
-    ctx.lineWidth = 2.5;
+    ctx.strokeStyle = `rgba(0, 242, 254, ${0.45 * illumFraction})`;
+    ctx.lineWidth = 3;
     ctx.stroke();
   }
 
