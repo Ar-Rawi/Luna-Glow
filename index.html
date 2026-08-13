@@ -4,50 +4,58 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="theme-color" content="#050814">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>LUNA GLOW — Marine Angler Observatory</title>
+  <meta name="description" content="LUNA GLOW — 24/7 Marine Angler & Astronomical Observatory. Real-time solunar feeding predictions, lunar 3D cycle stage, and sea species guide.">
+  <title>LUNA GLOW — 24/7 Marine & Astronomical Observatory</title>
+  
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=7">
+  <link rel="stylesheet" href="styles.css?v=8">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
 </head>
-<body>
+<body class="mode-angler">
   <!-- Ambient Cosmic Canvas -->
   <canvas id="cosmic-canvas"></canvas>
 
   <div class="app-container">
-    <!-- Header Mobile App Bar -->
+    <!-- Header App Bar -->
     <header class="navbar">
       <div class="logo">
-        <span class="moon-icon" id="logo-icon">🌊</span>
+        <span class="logo-badge">⚡</span>
         <div class="logo-text">
-          <h1 id="app-header-title">LUNA GLOW</h1>
-          <span class="subtitle" id="app-header-sub">MEDITERRANEAN SEA ANGLER & SPECIES OBSERVATORY</span>
+          <h1>LUNA GLOW</h1>
+          <span class="subtitle">24/7 MARINE ANGLER & ASTRONOMICAL OBSERVATORY</span>
         </div>
       </div>
-      
-      <div class="nav-actions">
-        <button id="med-mode-btn" class="glass-btn fishing-toggle active">
-          🌊 Mediterranean
-        </button>
-        <button id="malaysia-mode-btn" class="glass-btn fishing-toggle">
-          🇲🇾 Malaysian Seas
-        </button>
-        <button id="crimson-mode-btn" class="glass-btn crimson-toggle">
-          🩸 Crimson Eclipse
-        </button>
-        <button id="next-crimson-btn" class="glass-btn crimson-toggle hidden">
-          ⏭️ Next Eclipse <span id="crimson-index-tag">(1/8)</span>
-        </button>
+
+      <!-- Main Header Controls: Dual View Switch & Sea Region -->
+      <div class="nav-controls">
+        <!-- Dual View Mode: Angler vs Astronomy -->
+        <div class="segmented-control view-switch">
+          <button id="btn-view-angler" class="segment-btn active" title="Focus on Fishing Ratings, Solunar Hours & Species">
+            🎣 Angler View
+          </button>
+          <button id="btn-view-astronomy" class="segment-btn" title="Focus on 3D Moon Stage & Celestial Cycles">
+            ✨ Astronomy View
+          </button>
+        </div>
+
+        <!-- Sea Region Switcher -->
+        <div class="segmented-control sea-switch">
+          <button id="med-mode-btn" class="segment-btn active">
+            🌊 Mediterranean
+          </button>
+          <button id="malaysia-mode-btn" class="segment-btn">
+            🇲🇾 Malaysian Seas
+          </button>
+        </div>
       </div>
     </header>
 
     <!-- Main Hero Observatory Grid -->
     <main class="observatory-grid">
       
-      <!-- Left Column: Dynamic 3D Moon Stage & Time Travel -->
+      <!-- Left Column: 3D Moon Stage, Date Controls & Unified Phase Presets -->
       <section class="moon-stage-card glass-panel" id="section-moon">
         <div class="stage-header">
           <span class="badge" id="phase-badge">FULL MOON</span>
@@ -62,7 +70,7 @@
           </div>
         </div>
 
-        <!-- Moon Essential Metrics -->
+        <!-- Moon Metrics Grid -->
         <div class="metrics-row">
           <div class="metric-box">
             <span class="metric-val" id="illum-val">99.8%</span>
@@ -78,15 +86,44 @@
           </div>
         </div>
 
-        <!-- Date & Time Travel Controls -->
+        <!-- UNIFIED MOON PHASE PRESETS BAR (All Presets Together!) -->
+        <div class="unified-presets-card">
+          <span class="control-section-label">🌕 Unified Moon Phase Presets:</span>
+          <div class="presets-grid">
+            <button class="preset-btn" data-preset="full">
+              <span class="preset-icon">🌕</span>
+              <span>Full Moon</span>
+            </button>
+            <button class="preset-btn" data-preset="new">
+              <span class="preset-icon">🌑</span>
+              <span>New Moon</span>
+            </button>
+            <button class="preset-btn" data-preset="super">
+              <span class="preset-icon">✨</span>
+              <span>Supermoon</span>
+            </button>
+            <button class="preset-btn preset-crimson" id="crimson-mode-btn" data-preset="crimson">
+              <span class="preset-icon">🩸</span>
+              <span>Crimson Eclipse</span>
+            </button>
+          </div>
+          <div id="crimson-sub-controls" class="crimson-sub-bar hidden">
+            <span class="crimson-tag" id="crimson-index-tag">Eclipse #1 of 8</span>
+            <button id="next-crimson-btn" class="glass-btn-sm crimson-next-btn">
+              ⏭️ Next Crimson Eclipse
+            </button>
+          </div>
+        </div>
+
+        <!-- Date & Timelapse Controls -->
         <div class="control-panel">
           <div class="date-picker-row">
-            <label for="date-input">Select Date:</label>
+            <label for="date-input">Calendar Date:</label>
             <input type="date" id="date-input" class="glass-input">
             <button id="today-btn" class="glass-btn-sm">Today</button>
           </div>
 
-          <!-- Lunar Cycle Timelapse Slider -->
+          <!-- 30-Day Cycle Timelapse Slider -->
           <div class="slider-row">
             <div class="slider-header">
               <span>30-Day Lunar Cycle Timelapse</span>
@@ -94,55 +131,52 @@
             </div>
             <input type="range" id="cycle-slider" min="0" max="29.5" step="0.1" value="14.8" class="moon-slider">
           </div>
-
-          <!-- Dynamic Phase Jump Presets -->
-          <div class="preset-chips">
-            <span class="chip-label">Dynamic Phase Jump:</span>
-            <button class="chip-btn" data-preset="full">🌕 Next Full Moon</button>
-            <button class="chip-btn" data-preset="new">🌑 Next New Moon</button>
-            <button class="chip-btn" data-preset="super">✨ Next Supermoon</button>
-          </div>
         </div>
       </section>
 
-      <!-- Right Column: Sea Insights & Field Guide -->
+      <!-- Right Column: Sea Conditions, Solunar Hours, Species & Journal -->
       <section class="insights-column">
         
-        <!-- Sea Water Temp, Barometric Trend & Swell Gauge -->
+        <!-- Fishing Index / Sea Conditions Panel -->
         <div class="glass-panel insight-card fishing-highlight-panel" id="condition-panel">
           <div class="card-title-row">
-            <h3 id="condition-title">🌊 Sea Conditions & Barometric Gauge</h3>
+            <h3 id="condition-title">🌊 Solunar Fishing Index & Sea Gauge</h3>
             <span id="med-season-badge" class="rating-badge rating-prime">AUTUMN GOLDEN SEASON</span>
           </div>
-          <p id="med-desc" class="card-desc">
-            <b>Mediterranean Micro-Tidal Dynamics:</b> Because Mediterranean tides are small (20-40cm), Solunar Moon Overhead periods and Sea Surface Temperature (SST) drive 90% of fish feeding behavior!
-          </p>
+          
+          <!-- Large Angler Score Banner -->
+          <div class="fishing-score-banner">
+            <div class="score-dial">
+              <span class="score-number" id="solunar-score-val">96</span>
+              <span class="score-denom">/100</span>
+            </div>
+            <div class="score-meta">
+              <span class="score-headline" id="solunar-headline">🔥 EXCELLENT SOLUNAR BITE WINDOW</span>
+              <p class="score-sub" id="med-desc">Mediterranean Micro-Tidal Dynamics: Solunar Moon Overhead periods & SST drive 90% of fish strike behavior!</p>
+            </div>
+          </div>
 
-          <!-- Hydro & Atmospheric Metrics Grid -->
+          <!-- Hydro & Atmospheric Grid -->
           <div class="med-temp-grid">
             <div class="temp-box">
-              <span class="temp-lbl">Water Temp / Monsoon:</span>
+              <span class="temp-lbl">Sea Surface Temp:</span>
               <span id="sst-val" class="temp-val">24.5°C (Warm Summer-Autumn)</span>
             </div>
             <div class="temp-box">
-              <span class="temp-lbl">Solunar Feeding Index:</span>
-              <span id="solunar-score-txt" class="temp-val text-gold">96/100 (Peak Activity)</span>
-            </div>
-            <div class="temp-box">
-              <span class="temp-lbl">Barometric Pressure Trend:</span>
+              <span class="temp-lbl">Barometric Pressure:</span>
               <span id="baro-val" class="temp-val text-gold">1012 hPa (⚡ PRE-FRONTAL FRENZY)</span>
             </div>
             <div class="temp-box">
-              <span class="temp-lbl">Wave Swell & Boating Safety:</span>
+              <span class="temp-lbl">Wave Swell & Safety:</span>
               <span id="swell-val" class="temp-val">0.8m Swell (🟢 SAFE / GLASSY)</span>
             </div>
           </div>
         </div>
 
-        <!-- Solunar Major & Minor Feeding Times -->
-        <div class="glass-panel insight-card">
+        <!-- Solunar Major & Minor Feeding Windows -->
+        <div class="glass-panel insight-card" id="section-feeding">
           <div class="card-title-row">
-            <h3 id="feeding-title">⏰ Solunar Feeding Windows</h3>
+            <h3 id="feeding-title">⏰ Solunar Strike Windows</h3>
             <span class="icon-sparkle">🐟</span>
           </div>
           <div class="feeding-periods-grid">
@@ -169,15 +203,15 @@
           </div>
         </div>
 
-        <!-- Species Identification Field Guide + Depth Filter -->
+        <!-- Species Field Guide -->
         <div class="glass-panel insight-card" id="section-species">
           <div class="card-title-row" style="margin-bottom:0.6rem;">
-            <h3 id="species-title">🐟 Marine Species Field Reference Guide</h3>
+            <h3 id="species-title">🐟 Marine Species Field Guide</h3>
             <span class="icon-sparkle">📖</span>
           </div>
 
           <div class="depth-filter-row">
-            <span style="font-size:0.75rem; color:var(--text-muted); align-self:center;">Habitat:</span>
+            <span style="font-size:0.75rem; color:var(--text-muted); align-self:center;">Habitat Depth:</span>
             <button class="depth-btn active" data-depth="all">All Depths</button>
             <button class="depth-btn" data-depth="shallow">Estuary (1-10m)</button>
             <button class="depth-btn" data-depth="reef">Reef (10-30m)</button>
@@ -185,29 +219,28 @@
           </div>
 
           <div class="species-list-container" id="species-list-container">
-            <!-- Dynamically populated from active sea database -->
+            <!-- Dynamically populated -->
           </div>
         </div>
 
-        <!-- Angler Catch Log -->
+        <!-- Angler Catch Journal -->
         <div class="glass-panel insight-card" id="section-log">
           <div class="card-title-row">
-            <h3 id="log-title">✍️ Angler Catch Log</h3>
+            <h3 id="log-title">✍️ Angler Catch Journal</h3>
             <span class="icon-sparkle">📜</span>
           </div>
-          <textarea id="journal-input" class="glass-textarea" placeholder="Log fishing spot, SST temp/monsoon, bait used, and species caught..."></textarea>
+          <textarea id="journal-input" class="glass-textarea" placeholder="Log your fishing spot, sea conditions, bait used, and target species..."></textarea>
           <div class="journal-footer">
-            <button id="save-journal-btn" class="glass-btn-sm">💾 Save Log</button>
+            <button id="save-journal-btn" class="glass-btn-sm">💾 Save Log Entry</button>
             <span id="journal-status" class="status-txt"></span>
           </div>
         </div>
 
       </section>
-
     </main>
   </div>
 
-  <!-- Aisha's Mobile Bottom Navigation Bar (iOS / Android Native Look) -->
+  <!-- Mobile Navigation Bar -->
   <nav class="mobile-bottom-nav">
     <button class="tab-btn active" data-target="section-moon">
       <span class="tab-icon">🌕</span>
@@ -223,10 +256,10 @@
     </button>
     <button class="tab-btn" data-target="section-log">
       <span class="tab-icon">📜</span>
-      <span class="tab-label">Log</span>
+      <span class="tab-label">Journal</span>
     </button>
   </nav>
 
-  <script src="app.js?v=7"></script>
+  <script src="app.js?v=9"></script>
 </body>
 </html>

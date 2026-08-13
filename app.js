@@ -1,14 +1,20 @@
-// app.js — LUNA GLOW Marine Angler Observatory Engine v8 (Live Open-Meteo Marine API Edition)
+// app.js — LUNA GLOW Marine Angler & Astronomical Observatory Engine v9
+// Multi-Audience Dual View, Unified Moon Phase Presets, Live Open-Meteo API & Solunar Engine
 
 const LUNAR_MONTH = 29.53058867;
 const KNOWN_NEW_MOON = new Date(Date.UTC(2000, 0, 6, 18, 14, 0));
 
 let activeSeaMode = 'med'; // 'med' or 'malaysia'
+let activeViewMode = 'angler'; // 'angler' or 'astronomy'
 let activeDepthFilter = 'all'; // 'all', 'shallow', 'reef', 'deep'
+let isCrimsonMode = false;
+let currentDate = new Date();
 let medDatabase = [];
 let medSpeciesImages = [];
 let malaysiaDatabase = [];
 let liveMarineData = null;
+let isTimelapsePlaying = false;
+let timelapseTimer = null;
 
 const UPCOMING_CRIMSON_MOONS = [
   { date: new Date(2026, 7, 28), name: "August 28, 2026 (Perigee Eclipse)", note: "Super Moon Eclipse Surge — 16 Days Ahead" },
@@ -22,34 +28,29 @@ const UPCOMING_CRIMSON_MOONS = [
 ];
 let crimsonIndex = 0;
 
-// Fetch Live Internet Marine & Weather API Data from Open-Meteo Satellite Feeds!
+// Fetch Live Internet Marine API Data
 async function fetchLiveInternetMarineData(seaMode) {
-  // Lat/Lon for Mediterranean (Balearic/Tyrrhenian) vs Malaysia (South China Sea / Malacca)
   const lat = seaMode === 'malaysia' ? 3.1390 : 38.0000;
   const lon = seaMode === 'malaysia' ? 101.6869 : 15.0000;
 
   try {
-    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&hourly=surface_pressure,relative_humidity_2m`;
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&hourly=surface_pressure`;
     const res = await fetch(url);
     if (res.ok) {
       const data = await res.json();
       const currentPress = data.hourly?.surface_pressure ? data.hourly.surface_pressure[0] : 1013;
-      const currentWind = data.current_weather?.windspeed || 8;
-      
       liveMarineData = {
         pressure: Math.round(currentPress),
-        windSpeed: currentWind,
         sst: seaMode === 'malaysia' ? 29.2 : 22.8,
         isLive: true
       };
-      console.log("🛰️ Live Internet Marine API Data Loaded:", liveMarineData);
     }
   } catch (err) {
-    console.warn("Using offline marine fallback calculation:", err);
     liveMarineData = null;
   }
 }
 
+// Load Datasets
 async function loadDatabases() {
   try {
     const [medDbRes, medImgRes, myDbRes] = await Promise.all([
@@ -69,76 +70,7 @@ async function loadDatabases() {
   }
 }
 
-function renderSeasonalSpeciesForDate(date) {
-  const container = document.getElementById('species-list-container');
-  if (!container) return;
-  container.innerHTML = '';
-
-  const selectedMonth = date.getMonth();
-  const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-  const mName = monthNames[selectedMonth];
-
-  const targetDb = activeSeaMode === 'malaysia' ? malaysiaDatabase : medDatabase;
-  
-  let activeSpecies = targetDb.filter(sp => sp.peakMonths.includes(selectedMonth));
-  if (activeDepthFilter !== 'all') {
-    activeSpecies = activeSpecies.filter(sp => sp.depthCategory === activeDepthFilter);
-  }
-
-  const headerDiv = document.createElement('div');
-  headerDiv.style.cssText = "margin-bottom: 0.8rem; font-size:0.85rem; font-weight:700;";
-  
-  const seaLabel = activeSeaMode === 'malaysia' ? '🇲🇾 MALAYSIAN SEAS' : '🌊 MEDITERRANEAN SEA';
-  const depthTag = activeDepthFilter !== 'all' ? ` [${activeDepthFilter.toUpperCase()} HABITAT]` : '';
-
-  if (isCrimsonMode) {
-    const cObj = UPCOMING_CRIMSON_MOONS[crimsonIndex];
-    headerDiv.style.color = "var(--accent-crimson)";
-    headerDiv.innerHTML = `🩸 <b>${seaLabel}${depthTag} — CRIMSON ECLIPSE TARGETS (${cObj.name.toUpperCase()}):</b>`;
-  } else {
-    headerDiv.style.color = "var(--accent-gold)";
-    headerDiv.innerHTML = `🎣 <b>${seaLabel}${depthTag} — ${activeSpecies.length} Species in PEAK SEASON for ${mName}:</b>`;
-  }
-  container.appendChild(headerDiv);
-
-  if (activeSpecies.length === 0) {
-    container.innerHTML += `<div style="font-size:0.85rem; color:var(--text-muted); padding:1rem; text-align:center;">No matching species in ${activeDepthFilter} depth for ${mName}. Try selecting 'All Depths'.</div>`;
-    return;
-  }
-
-  activeSpecies.forEach(sp => {
-    const imgMatch = medSpeciesImages.find(img => img.id === sp.id);
-    const imgHtml = imgMatch ? `<img src="${imgMatch.image}" alt="${sp.name}" class="species-img">` : '';
-    const riggingTxt = sp.rigging ? `<div class="rigging-box">🪢 <b>Recommended Tackle & Rigging:</b> ${sp.rigging}</div>` : '';
-
-    const card = document.createElement('div');
-    card.className = 'species-card';
-    if (isCrimsonMode) {
-      card.style.borderColor = "rgba(255, 51, 102, 0.4)";
-      card.style.background = "rgba(45, 10, 20, 0.4)";
-    }
-
-    card.innerHTML = `
-      ${imgHtml}
-      <div class="species-info">
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-          <div class="species-name" style="${isCrimsonMode ? 'color:var(--accent-crimson);' : ''}">${sp.name}</div>
-          <span style="font-size:0.7rem; background:${isCrimsonMode ? 'rgba(255,51,102,0.2)' : 'rgba(242,201,76,0.15)'}; border:1px solid ${isCrimsonMode ? 'var(--accent-crimson)' : 'var(--accent-gold)'}; color:${isCrimsonMode ? 'var(--accent-crimson)' : 'var(--accent-gold)'}; padding:0.2rem 0.6rem; border-radius:10px; font-weight:700;">${isCrimsonMode ? '🩸 ECLIPSE TOTALITY ACTIVE' : '🔥 PEAK IN ' + mName.toUpperCase()}</span>
-        </div>
-        <div class="species-latin">${sp.scientificName}</div>
-        <div class="species-meta-row">
-          <span class="species-season" style="${isCrimsonMode ? 'color:var(--accent-crimson);' : ''}">🏷️ ${sp.seasonCategory}</span>
-          <span class="species-temp">🌡️ ${sp.idealSST}</span>
-          <span style="color:var(--text-muted);">📏 Depth: ${sp.depth}</span>
-        </div>
-        <div class="species-desc"><b>${isCrimsonMode ? '🩸 Eclipse Totality Tactics:' : 'Tactics:'}</b> ${isCrimsonMode ? 'Target deep structure & current rips where predators ambush disoriented baitfish during 90-min eclipse shadow.' : sp.tactics}</div>
-        ${riggingTxt}
-      </div>
-    `;
-    container.appendChild(card);
-  });
-}
-
+// Moon Phase Mathematics
 function calculateMoonPhase(date = new Date()) {
   const diffDays = (date.getTime() - KNOWN_NEW_MOON.getTime()) / (1000 * 60 * 60 * 24);
   let age = diffDays % LUNAR_MONTH;
@@ -166,6 +98,7 @@ function calculateMoonPhase(date = new Date()) {
   };
 }
 
+// Target Preset Calculator
 function findNextMoonPhaseDate(fromDate, targetPhase) {
   let searchDate = new Date(fromDate.getTime() + 24 * 60 * 60 * 1000);
   for (let i = 0; i < 45; i++) {
@@ -178,69 +111,169 @@ function findNextMoonPhaseDate(fromDate, targetPhase) {
   return new Date(fromDate.getTime() + 14 * 24 * 60 * 60 * 1000);
 }
 
+// 3D Moon Canvas Rendering
+function render3DMoonCanvas(moonInfo) {
+  const canvas = document.getElementById('moon-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const w = canvas.width;
+  const h = canvas.height;
+  const cx = w / 2;
+  const cy = h / 2;
+  const r = 130;
+
+  ctx.clearRect(0, 0, w, h);
+
+  // Background Sphere Shadow
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, 0, Math.PI * 2);
+  ctx.fillStyle = '#0a0d1a';
+  ctx.fill();
+
+  // Moon Texture Base Gradient
+  const illumFrac = parseFloat(moonInfo.illumination) / 100;
+  const grad = ctx.createRadialGradient(cx - r*0.3, cy - r*0.3, r*0.1, cx, cy, r);
+  
+  if (isCrimsonMode) {
+    grad.addColorStop(0, '#ff4d6d');
+    grad.addColorStop(0.5, '#cc0033');
+    grad.addColorStop(1, '#4a0011');
+  } else {
+    grad.addColorStop(0, '#ffffff');
+    grad.addColorStop(0.6, '#cbd5e1');
+    grad.addColorStop(1, '#475569');
+  }
+
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, 0, Math.PI * 2);
+  ctx.fillStyle = grad;
+  ctx.globalAlpha = Math.max(0.15, illumFrac);
+  ctx.fill();
+
+  // Draw Craters
+  ctx.globalAlpha = isCrimsonMode ? 0.35 : 0.25;
+  ctx.fillStyle = isCrimsonMode ? '#28000a' : '#1e293b';
+  
+  const craterList = [
+    {x: -40, y: -30, r: 22}, {x: 20, y: -50, r: 16}, {x: 50, y: 20, r: 28},
+    {x: -20, y: 40, r: 18}, {x: 10, y: 60, r: 14}, {x: -60, y: 10, r: 20}
+  ];
+  craterList.forEach(c => {
+    ctx.beginPath();
+    ctx.arc(cx + c.x, cy + c.y, c.r, 0, Math.PI * 2);
+    ctx.fill();
+  });
+  ctx.restore();
+}
+
+// Render Species Cards
+function renderSeasonalSpeciesForDate(date) {
+  const container = document.getElementById('species-list-container');
+  if (!container) return;
+  container.innerHTML = '';
+
+  const selectedMonth = date.getMonth();
+  const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+  const mName = monthNames[selectedMonth];
+
+  const targetDb = activeSeaMode === 'malaysia' ? malaysiaDatabase : medDatabase;
+  let activeSpecies = targetDb.filter(sp => sp.peakMonths.includes(selectedMonth));
+
+  if (activeDepthFilter !== 'all') {
+    activeSpecies = activeSpecies.filter(sp => sp.depthCategory === activeDepthFilter);
+  }
+
+  const headerDiv = document.createElement('div');
+  headerDiv.style.cssText = "margin-bottom: 0.8rem; font-size:0.85rem; font-weight:700;";
+  
+  const seaLabel = activeSeaMode === 'malaysia' ? '🇲🇾 MALAYSIAN SEAS' : '🌊 MEDITERRANEAN SEA';
+  const depthTag = activeDepthFilter !== 'all' ? ` [${activeDepthFilter.toUpperCase()} HABITAT]` : '';
+
+  if (isCrimsonMode) {
+    const cObj = UPCOMING_CRIMSON_MOONS[crimsonIndex];
+    headerDiv.style.color = "var(--accent-crimson)";
+    headerDiv.innerHTML = `🩸 <b>${seaLabel}${depthTag} — CRIMSON ECLIPSE TARGETS (${cObj.name.toUpperCase()}):</b>`;
+  } else {
+    headerDiv.style.color = "var(--accent-gold)";
+    headerDiv.innerHTML = `🎣 <b>${seaLabel}${depthTag} — ${activeSpecies.length} Target Species in Season for ${mName}:</b>`;
+  }
+  container.appendChild(headerDiv);
+
+  if (activeSpecies.length === 0) {
+    container.innerHTML += `<div style="font-size:0.85rem; color:var(--text-muted); padding:1rem; text-align:center;">No matching species in ${activeDepthFilter} depth for ${mName}. Try selecting 'All Depths'.</div>`;
+    return;
+  }
+
+  activeSpecies.forEach(sp => {
+    const imgMatch = medSpeciesImages.find(img => img.id === sp.id);
+    const imgHtml = imgMatch ? `<img src="${imgMatch.image}" alt="${sp.name}" class="species-img">` : '';
+    const riggingTxt = sp.rigging ? `<div class="rigging-box">🪢 <b>Recommended Rigging:</b> ${sp.rigging}</div>` : '';
+
+    const card = document.createElement('div');
+    card.className = 'species-card';
+    if (isCrimsonMode) {
+      card.style.borderColor = "rgba(255, 51, 102, 0.4)";
+      card.style.background = "rgba(45, 10, 20, 0.4)";
+    }
+
+    card.innerHTML = `
+      ${imgHtml}
+      <div class="species-info">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div class="species-name" style="${isCrimsonMode ? 'color:var(--accent-crimson);' : ''}">${sp.name}</div>
+          <span style="font-size:0.7rem; background:${isCrimsonMode ? 'rgba(255,51,102,0.2)' : 'rgba(242,201,76,0.15)'}; border:1px solid ${isCrimsonMode ? 'var(--accent-crimson)' : 'var(--accent-gold)'}; color:${isCrimsonMode ? 'var(--accent-crimson)' : 'var(--accent-gold)'}; padding:0.2rem 0.6rem; border-radius:10px; font-weight:700;">${isCrimsonMode ? '🩸 ECLIPSE ACTIVE' : '🔥 PEAK IN ' + mName.toUpperCase()}</span>
+        </div>
+        <div class="species-latin">${sp.scientificName}</div>
+        <div class="species-meta-row">
+          <span class="species-season">🏷️ ${sp.seasonCategory}</span>
+          <span>🌡️ ${sp.idealSST}</span>
+          <span>📏 Depth: ${sp.depth}</span>
+        </div>
+        <div class="species-desc"><b>Tactics:</b> ${isCrimsonMode ? 'Target deep structure & current rips where predators ambush disoriented baitfish during 90-min eclipse shadow.' : sp.tactics}</div>
+        ${riggingTxt}
+      </div>
+    `;
+    container.appendChild(card);
+  });
+}
+
+// Calculate Solunar Scores
 function calculateSeaSolunar(date = new Date(), moonData) {
   const age = parseFloat(moonData.age);
   const month = date.getMonth();
 
-  const isFullOrNew = (age >= 13.5 && age <= 16.0) || (age <= 1.5 || age >= 28.0);
-
-  let score = 70;
-  let sstTxt = "22.5°C (Summer)";
+  let score = 75;
+  let sstTxt = "22.5°C (Warm Summer)";
   let seasonTxt = "☀️ SUMMER SEASON";
-  let seasonClass = "rating-good";
+  let baroHpa = liveMarineData ? liveMarineData.pressure : 1012;
+  let baroTxt = `${baroHpa} hPa (🟢 HIGH PRESSURE BITE)`;
+  if (baroHpa < 1010) baroTxt = `${baroHpa} hPa (⚡ PRE-FRONTAL FRENZY)`;
+  let swellTxt = "0.7m Swell (🟢 SAFE / GLASSY)";
 
-  // Use Live Internet API Barometric Pressure if connected!
-  let baroHpa = 1013;
-  if (liveMarineData && liveMarineData.pressure) {
-    baroHpa = liveMarineData.pressure;
-  } else {
-    const dayFactor = Math.sin((date.getDate() / 31) * Math.PI * 2);
-    baroHpa = Math.round(1013 + dayFactor * 7);
-  }
-
-  let baroTxt = `${baroHpa} hPa (🟢 STEADY HIGH BITE)`;
-  if (baroHpa < 1010) baroTxt = `${baroHpa} hPa (⚡ PRE-FRONTAL FRENZY ALERT!)`;
-  else if (baroHpa > 1018) baroTxt = `${baroHpa} hPa (🟡 HIGH PRESSURE - CAUTIOUS BITE)`;
-
-  let swellTxt = "0.7m Swell (🟢 SAFE / GLASSY WATER)";
   if (activeSeaMode === 'malaysia') {
     if (month >= 10 || month <= 2) {
-      sstTxt = liveMarineData ? `28.8°C (📡 LIVE INTERNET SST)` : "28.5°C (Northeast Monsoon)";
+      sstTxt = "28.8°C (Northeast Monsoon)";
       seasonTxt = "🌧️ NORTHEAST MONSOON";
-      seasonClass = "rating-good";
-      swellTxt = "2.4m Swell (🛑 ROUGH EAST COAST / SAFE WEST COAST)";
+      swellTxt = "2.4m Swell (🛑 ROUGH EAST / SAFE WEST)";
       score = 85;
     } else if (month >= 4 && month <= 8) {
-      sstTxt = liveMarineData ? `29.4°C (📡 LIVE INTERNET SST)` : "29.5°C (Southwest Monsoon)";
-      seasonTxt = "☀️ SOUTHWEST MONSOON (GOLDEN SEASON)";
-      seasonClass = "rating-prime";
-      swellTxt = "0.5m Swell (🟢 GLASSY EAST COAST / CALM)";
-      score = 94;
+      sstTxt = "29.5°C (Southwest Monsoon)";
+      seasonTxt = "☀️ SOUTHWEST MONSOON (GOLDEN)";
+      swellTxt = "0.5m Swell (🟢 GLASSY EAST COAST)";
+      score = 95;
     } else {
-      sstTxt = liveMarineData ? `29.1°C (📡 LIVE INTERNET SST)` : "29.0°C (Inter-Monsoon)";
+      sstTxt = "29.1°C (Inter-Monsoon)";
       seasonTxt = "🌸 INTER-MONSOON GLASSY SEA";
-      seasonClass = "rating-prime";
       swellTxt = "0.4m Swell (🟢 CALM NATIONWIDE)";
       score = 90;
     }
   } else {
     if (month >= 8 && month <= 10) {
-      sstTxt = liveMarineData ? `21.2°C (📡 LIVE INTERNET SST)` : "20.5°C (Optimal Autumn)";
+      sstTxt = "21.2°C (Autumn Golden)";
       seasonTxt = "🍂 AUTUMN GOLDEN SEASON";
-      seasonClass = "rating-prime";
-      swellTxt = "0.9m Swell (🟢 EXCELLENT REEF COND)";
-      score += 15;
-    } else if (month >= 2 && month <= 4) {
-      sstTxt = "17.0°C (Spring)";
-      seasonTxt = "🌸 SPRING SEASON";
-      seasonClass = "rating-good";
-      swellTxt = "1.2m Swell (🟡 MODERATE WIND)";
-    } else if (month === 11 || month <= 1) {
-      sstTxt = "14.5°C (Winter)";
-      seasonTxt = "❄️ WINTER SEASON";
-      seasonClass = "rating-moderate";
-      swellTxt = "2.1m Swell (🛑 MISTRAL WIND SWELL)";
-      score -= 10;
+      swellTxt = "0.8m Swell (🟢 EXCELLENT REEF COND)";
+      score = 96;
     }
   }
 
@@ -248,350 +281,259 @@ function calculateSeaSolunar(date = new Date(), moonData) {
     score = 99;
     const cObj = UPCOMING_CRIMSON_MOONS[crimsonIndex];
     seasonTxt = `🩸 ECLIPSE #${crimsonIndex + 1}: ${cObj.name}`;
-    seasonClass = "rating-prime";
-    baroTxt = "1006 hPa (⚡ ECLIPSE BAROMETRIC SURGE!)";
-  } else if (isFullOrNew) {
-    score = Math.min(100, score + 20);
   }
 
-  const baseHour = (date.getDate() * 0.8) % 24;
-  const formatTime = (h) => {
-    const hrs = Math.floor(h) % 24;
-    const mins = Math.floor((h % 1) * 60);
-    const p = hrs >= 12 ? 'PM' : 'AM';
-    const displayH = hrs % 12 === 0 ? 12 : hrs % 12;
-    return `${displayH.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')} ${p}`;
-  };
-
-  return {
-    score,
-    sstTxt,
-    seasonTxt,
-    seasonClass,
-    baroTxt,
-    swellTxt,
-    major1: isCrimsonMode ? "02:15 AM – 03:45 AM (Eclipse Totality)" : `${formatTime((baseHour + 12) % 24)} – ${formatTime((baseHour + 14) % 24)}`,
-    major2: isCrimsonMode ? "08:30 PM – 10:00 PM (Eclipse Peak)" : `${formatTime(baseHour % 24)} – ${formatTime((baseHour + 2) % 24)}`,
-    minor1: `${formatTime((baseHour + 6) % 24)} – ${formatTime((baseHour + 7) % 24)}`,
-    minor2: `${formatTime((baseHour + 18) % 24)} – ${formatTime((baseHour + 19) % 24)}`
-  };
+  return { score, sstTxt, seasonTxt, baroTxt, swellTxt };
 }
 
-let currentDate = new Date();
-let isCrimsonMode = false;
-let isTimelapseRunning = false;
-let timelapseInterval = null;
-
-const dateInput = document.getElementById('date-input');
-const selectedDateStr = document.getElementById('selected-date-str');
-const phaseBadge = document.getElementById('phase-badge');
-const illumVal = document.getElementById('illum-val');
-const ageVal = document.getElementById('age-val');
-const distVal = document.getElementById('dist-val');
-const cycleSlider = document.getElementById('cycle-slider');
-
-const moonCanvas = document.getElementById('moon-canvas');
-const ctx = moonCanvas ? moonCanvas.getContext('2d') : null;
-
-const crimsonModeBtn = document.getElementById('crimson-mode-btn');
-const nextCrimsonBtn = document.getElementById('next-crimson-btn');
-const crimsonIndexTag = document.getElementById('crimson-index-tag');
-const medModeBtn = document.getElementById('med-mode-btn');
-const malaysiaModeBtn = document.getElementById('malaysia-mode-btn');
-const timelapseBtn = document.getElementById('timelapse-btn');
-
-const medSeasonBadge = document.getElementById('med-season-badge');
-const sstVal = document.getElementById('sst-val');
-const baroVal = document.getElementById('baro-val');
-const swellVal = document.getElementById('swell-val');
-const solunarScoreTxt = document.getElementById('solunar-score-txt');
-
-const major1Val = document.getElementById('major1-val');
-const major2Val = document.getElementById('major2-val');
-const minor1Val = document.getElementById('minor1-val');
-const minor2Val = document.getElementById('minor2-val');
-
-const journalInput = document.getElementById('journal-input');
-const saveJournalBtn = document.getElementById('save-journal-btn');
-const journalStatus = document.getElementById('journal-status');
-
-function drawMoonCanvas(illumination, phaseName) {
-  if (!ctx) return;
-  const w = moonCanvas.width;
-  const h = moonCanvas.height;
-  const cx = w / 2;
-  const cy = h / 2;
-  const r = cx - 10;
-
-  ctx.clearRect(0, 0, w, h);
-
-  ctx.beginPath();
-  ctx.arc(cx, cy, r, 0, Math.PI * 2);
-  ctx.fillStyle = isCrimsonMode ? '#1e050b' : '#111726';
-  ctx.fill();
-
-  const illumPct = parseFloat(illumination) / 100;
-  const lightColor = isCrimsonMode ? '#ff3366' : '#f0f4fc';
-
-  ctx.save();
-  ctx.beginPath();
-  ctx.arc(cx, cy, r, 0, Math.PI * 2);
-  ctx.clip();
-
-  ctx.fillStyle = lightColor;
-  if (illumPct > 0.5) {
-    ctx.fillRect(0, 0, w, h);
-    ctx.fillStyle = isCrimsonMode ? '#1e050b' : '#111726';
-    ctx.beginPath();
-    ctx.ellipse(cx, cy, r * (1 - (illumPct - 0.5) * 2), r, 0, 0, Math.PI * 2);
-    ctx.fill();
-  } else {
-    ctx.beginPath();
-    ctx.ellipse(cx, cy, r * (0.5 - illumPct) * 2, r, 0, 0, Math.PI * 2);
-    ctx.fill();
-  }
-
-  ctx.fillStyle = isCrimsonMode ? 'rgba(80, 10, 25, 0.4)' : 'rgba(160, 175, 200, 0.15)';
-  [
-    {x: cx - 40, y: cy - 30, radius: 18},
-    {x: cx + 30, y: cy + 40, radius: 24},
-    {x: cx + 50, y: cy - 20, radius: 14},
-    {x: cx - 20, y: cy + 50, radius: 16},
-    {x: cx, y: cy, radius: 28}
-  ].forEach(crater => {
-    ctx.beginPath();
-    ctx.arc(crater.x, crater.y, crater.radius, 0, Math.PI * 2);
-    ctx.fill();
-  });
-
-  ctx.restore();
-}
-
-function updateView(date) {
+// Master View Update
+function updateView(date = new Date()) {
   currentDate = date;
-  const moonData = calculateMoonPhase(date);
-  const seaData = calculateSeaSolunar(date, moonData);
-
+  const moonInfo = calculateMoonPhase(date);
+  
+  // Format Date String
   const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-  selectedDateStr.textContent = date.toLocaleDateString('en-US', options);
-  dateInput.value = date.toISOString().split('T')[0];
+  document.getElementById('selected-date-str').textContent = date.toLocaleDateString('en-US', options);
+  document.getElementById('date-input').value = date.toISOString().split('T')[0];
 
-  const appHeaderTitle = document.getElementById('app-header-title');
-  const appHeaderSub = document.getElementById('app-header-sub');
-  const conditionTitle = document.getElementById('condition-title');
-  const medDesc = document.getElementById('med-desc');
-  const speciesTitle = document.getElementById('species-title');
-  const feedingTitle = document.getElementById('feeding-title');
+  // Update Moon Text Metrics
+  document.getElementById('illum-val').textContent = `${moonInfo.illumination}%`;
+  document.getElementById('age-val').textContent = `${moonInfo.age} days`;
+  document.getElementById('dist-val').textContent = `${moonInfo.distance} km`;
+  document.getElementById('phase-badge').textContent = isCrimsonMode ? "🩸 CRIMSON ECLIPSE" : moonInfo.phaseName.toUpperCase();
 
-  if (isCrimsonMode) {
-    const cObj = UPCOMING_CRIMSON_MOONS[crimsonIndex];
-    if (appHeaderTitle) appHeaderTitle.textContent = "CRIMSON LUNA";
-    if (appHeaderSub) appHeaderSub.textContent = `CRIMSON ECLIPSE #${crimsonIndex + 1} OF 8: ${cObj.name.toUpperCase()}`;
-    if (conditionTitle) conditionTitle.textContent = `🩸 ${cObj.name}`;
-    if (medDesc) medDesc.innerHTML = `<b>Eclipse Alignment Notice:</b> ${cObj.note}. Sun, Earth, and Moon align in 180° Syzygy, creating an intense gravitational surge for marine predators in ${activeSeaMode === 'malaysia' ? 'Malaysian Tropical Seas' : 'Mediterranean Waters'}!`;
-    if (speciesTitle) speciesTitle.textContent = `🩸 ${activeSeaMode === 'malaysia' ? 'Malaysian' : 'Mediterranean'} Target Species for ${cObj.name}`;
-    if (feedingTitle) feedingTitle.textContent = `🩸 Totality Windows for ${cObj.name}`;
-    
-    if (nextCrimsonBtn) nextCrimsonBtn.classList.remove('hidden');
-    if (crimsonIndexTag) crimsonIndexTag.textContent = `(${crimsonIndex + 1}/${UPCOMING_CRIMSON_MOONS.length})`;
-  } else {
-    if (appHeaderTitle) appHeaderTitle.textContent = "LUNA GLOW";
-    if (appHeaderSub) appHeaderSub.textContent = activeSeaMode === 'malaysia' ? "MALAYSIAN SEAS ANGLER & MONSOON OBSERVATORY" : "MEDITERRANEAN SEA ANGLER & SPECIES OBSERVATORY";
-    if (conditionTitle) conditionTitle.textContent = activeSeaMode === 'malaysia' ? "🇲🇾 Malaysian Seas & Barometric Gauge" : "🌊 Mediterranean Sea & Barometric Gauge";
-    if (medDesc) medDesc.innerHTML = activeSeaMode === 'malaysia' ? 
-      "<b>Malaysian Macro-Tidal & Monsoon Dynamics:</b> Malaysian waters feature strong 2m-4m tidal ranges. Solunar Major Overhead periods combined with Monsoon swell conditions drive peak bites for Barramundi, Tenggiri, and GTs!" : 
-      "<b>Mediterranean Micro-Tidal Dynamics:</b> Because Mediterranean tides are small (20-40cm), Solunar Moon Overhead periods and Sea Surface Temperature (SST) drive 90% of fish feeding behavior!";
-    if (speciesTitle) speciesTitle.textContent = activeSeaMode === 'malaysia' ? "🇲🇾 Malaysian Seas Species Field Reference Guide" : "🐟 Mediterranean Species Field Reference Guide";
-    if (feedingTitle) feedingTitle.textContent = "⏰ Solunar Feeding Windows";
-    
-    if (nextCrimsonBtn) nextCrimsonBtn.classList.add('hidden');
-  }
+  // Render 3D Canvas
+  render3DMoonCanvas(moonInfo);
 
-  illumVal.textContent = isCrimsonMode ? "100% (Totality)" : `${moonData.illumination}%`;
-  ageVal.textContent = `${moonData.age} days`;
-  distVal.textContent = `${moonData.distance} km`;
-  cycleSlider.value = moonData.age;
+  // Calculate Solunar & Conditions
+  const sol = calculateSeaSolunar(date, moonInfo);
+  document.getElementById('solunar-score-val').textContent = sol.score;
+  document.getElementById('sst-val').textContent = sol.sstTxt;
+  document.getElementById('baro-val').textContent = sol.baroTxt;
+  document.getElementById('swell-val').textContent = sol.swellTxt;
+  document.getElementById('med-season-badge').textContent = sol.seasonTxt;
 
-  if (isCrimsonMode) {
-    phaseBadge.textContent = `ECLIPSE ${crimsonIndex + 1}/8`;
-    phaseBadge.className = "badge badge-crimson";
-  } else {
-    phaseBadge.textContent = moonData.phaseName.toUpperCase();
-    phaseBadge.className = "badge";
-  }
+  // Headline Update
+  const scoreHead = document.getElementById('solunar-headline');
+  if (sol.score >= 90) scoreHead.textContent = "🔥 PEAK SOLUNAR STRIKE FRENZY!";
+  else if (sol.score >= 80) scoreHead.textContent = "🟢 GOOD FISHING CONDITIONS";
+  else scoreHead.textContent = "🟡 MODERATE STRIKE WINDOW";
 
-  drawMoonCanvas(moonData.illumination, moonData.phaseName);
-
-  medSeasonBadge.textContent = seaData.seasonTxt;
-  medSeasonBadge.className = isCrimsonMode ? 'rating-badge rating-prime' : `rating-badge ${seaData.seasonClass}`;
-
-  sstVal.textContent = seaData.sstTxt;
-  if (baroVal) baroVal.textContent = seaData.baroTxt;
-  if (swellVal) swellVal.textContent = seaData.swellTxt;
-  solunarScoreTxt.textContent = `${seaData.score}/100`;
-
-  major1Val.textContent = seaData.major1;
-  major2Val.textContent = seaData.major2;
-  minor1Val.textContent = seaData.minor1;
-  minor2Val.textContent = seaData.minor2;
-
+  // Update Species Cards
   renderSeasonalSpeciesForDate(date);
 }
 
-dateInput.addEventListener('change', (e) => {
-  if (e.target.value) {
-    updateView(new Date(e.target.value));
-  }
-});
-
-document.getElementById('today-btn').addEventListener('click', () => {
-  isCrimsonMode = false;
-  document.body.classList.remove('crimson-theme');
-  updateView(new Date());
-});
-
-cycleSlider.addEventListener('input', (e) => {
-  const targetAge = parseFloat(e.target.value);
-  const diffDays = targetAge - calculateMoonPhase(currentDate).age;
-  const newDate = new Date(currentDate.getTime() + diffDays * 24 * 60 * 60 * 1000);
-  updateView(newDate);
-});
-
-// Mode Toggles (Mediterranean vs Malaysian Seas)
-medModeBtn.addEventListener('click', async () => {
-  activeSeaMode = 'med';
-  medModeBtn.classList.add('active');
-  malaysiaModeBtn.classList.remove('active');
-  await fetchLiveInternetMarineData('med');
-  updateView(currentDate);
-});
-
-malaysiaModeBtn.addEventListener('click', async () => {
-  activeSeaMode = 'malaysia';
-  malaysiaModeBtn.classList.add('active');
-  medModeBtn.classList.remove('active');
-  await fetchLiveInternetMarineData('malaysia');
-  updateView(currentDate);
-});
-
-document.querySelectorAll('.mobile-bottom-nav .tab-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.mobile-bottom-nav .tab-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    const targetId = btn.dataset.target;
-    const targetEl = document.getElementById(targetId);
-    if (targetEl) {
-      targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-  });
-});
-
-document.querySelectorAll('.depth-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.depth-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    activeDepthFilter = btn.dataset.depth;
-    renderSeasonalSpeciesForDate(currentDate);
-  });
-});
-
-document.querySelectorAll('.chip-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    const preset = btn.dataset.preset;
-    isCrimsonMode = false;
-    document.body.classList.remove('crimson-theme');
-    const nextPhaseDate = findNextMoonPhaseDate(currentDate, preset);
-    updateView(nextPhaseDate);
-  });
-});
-
-crimsonModeBtn.addEventListener('click', () => {
-  isCrimsonMode = !isCrimsonMode;
-  if (isCrimsonMode) {
-    document.body.classList.add('crimson-theme');
-    crimsonModeBtn.style.background = "rgba(255, 51, 102, 0.25)";
-    crimsonIndex = 0;
-    updateView(UPCOMING_CRIMSON_MOONS[0].date);
-  } else {
-    document.body.classList.remove('crimson-theme');
-    crimsonModeBtn.style.background = "transparent";
-    updateView(new Date());
-  }
-});
-
-if (nextCrimsonBtn) {
-  nextCrimsonBtn.addEventListener('click', () => {
-    isCrimsonMode = true;
-    document.body.classList.add('crimson-theme');
-    crimsonIndex = (crimsonIndex + 1) % UPCOMING_CRIMSON_MOONS.length;
-    updateView(UPCOMING_CRIMSON_MOONS[crimsonIndex].date);
-  });
-}
-
-timelapseBtn.addEventListener('click', () => {
-  if (isTimelapseRunning) {
-    clearInterval(timelapseInterval);
-    isTimelapseRunning = false;
-    timelapseBtn.textContent = "▶ Play Timelapse";
-  } else {
-    isTimelapseRunning = true;
-    timelapseBtn.textContent = "⏸ Pause";
-    timelapseInterval = setInterval(() => {
-      const nextDate = new Date(currentDate.getTime() + 24 * 60 * 60 * 1000);
-      updateView(nextDate);
-    }, 300);
-  }
-});
-
-saveJournalBtn.addEventListener('click', () => {
-  const note = journalInput.value.trim();
-  if (note) {
-    const key = `luna_${activeSeaMode}_log_${currentDate.toISOString().split('T')[0]}`;
-    localStorage.setItem(key, note);
-    journalStatus.textContent = `Saved to ${activeSeaMode === 'malaysia' ? 'Malaysian' : 'Mediterranean'} Log! 🎣`;
-    setTimeout(() => { journalStatus.textContent = ""; }, 2500);
-  }
-});
-
-function initStarfield() {
+// Ambient Cosmic Canvas Background
+function initCosmicCanvas() {
   const canvas = document.getElementById('cosmic-canvas');
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
-  let w = canvas.width = window.innerWidth;
-  let h = canvas.height = window.innerHeight;
-
-  const stars = [];
-  for (let i = 0; i < 150; i++) {
-    stars.push({
-      x: Math.random() * w,
-      y: Math.random() * h,
-      r: Math.random() * 1.5 + 0.5,
-      alpha: Math.random(),
-      speed: Math.random() * 0.02 + 0.005
-    });
-  }
-
-  function renderStars() {
-    ctx.clearRect(0, 0, w, h);
-    stars.forEach(s => {
-      s.alpha += s.speed;
-      if (s.alpha > 1 || s.alpha < 0) s.speed = -s.speed;
-      ctx.beginPath();
-      ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(240, 244, 252, ${Math.abs(s.alpha)})`;
-      ctx.fill();
-    });
-    requestAnimationFrame(renderStars);
-  }
-  renderStars();
+  
+  let w = (canvas.width = window.innerWidth);
+  let h = (canvas.height = window.innerHeight);
 
   window.addEventListener('resize', () => {
     w = canvas.width = window.innerWidth;
     h = canvas.height = window.innerHeight;
   });
+
+  const stars = Array.from({ length: 90 }, () => ({
+    x: Math.random() * w,
+    y: Math.random() * h,
+    r: Math.random() * 1.5 + 0.5,
+    alpha: Math.random(),
+    speed: Math.random() * 0.015 + 0.005
+  }));
+
+  function anim() {
+    ctx.clearRect(0, 0, w, h);
+    stars.forEach(s => {
+      s.alpha += s.speed;
+      if (s.alpha > 1 || s.alpha < 0) s.speed = -s.speed;
+      ctx.fillStyle = `rgba(255, 255, 255, ${Math.abs(s.alpha)})`;
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+      ctx.fill();
+    });
+    requestAnimationFrame(anim);
+  }
+  anim();
 }
 
+// Setup Event Listeners
+function setupEvents() {
+  // UNIFIED MOON PHASE PRESETS BAR (All Presets Grouped Together!)
+  document.querySelectorAll('.preset-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const preset = btn.dataset.preset;
+
+      document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      if (preset === 'crimson') {
+        isCrimsonMode = true;
+        document.body.classList.add('crimson-theme');
+        document.getElementById('crimson-sub-controls').classList.remove('hidden');
+        currentDate = UPCOMING_CRIMSON_MOONS[crimsonIndex].date;
+      } else {
+        isCrimsonMode = false;
+        document.body.classList.remove('crimson-theme');
+        document.getElementById('crimson-sub-controls').classList.add('hidden');
+        currentDate = findNextMoonPhaseDate(currentDate, preset);
+      }
+
+      // GSAP Pulse Animation on Canvas
+      gsap.fromTo('#moon-canvas', { scale: 0.8, opacity: 0.5 }, { scale: 1, opacity: 1, duration: 0.5, ease: 'back.out(1.7)' });
+      updateView(currentDate);
+    });
+  });
+
+  // Crimson Next Cycle Button
+  const nextCrimsonBtn = document.getElementById('next-crimson-btn');
+  if (nextCrimsonBtn) {
+    nextCrimsonBtn.addEventListener('click', () => {
+      crimsonIndex = (crimsonIndex + 1) % UPCOMING_CRIMSON_MOONS.length;
+      currentDate = UPCOMING_CRIMSON_MOONS[crimsonIndex].date;
+      document.getElementById('crimson-index-tag').textContent = `Eclipse #${crimsonIndex + 1} of ${UPCOMING_CRIMSON_MOONS.length}`;
+      updateView(currentDate);
+    });
+  }
+
+  // Dual View Mode Switcher: Angler View vs Astronomy View
+  const btnAngler = document.getElementById('btn-view-angler');
+  const btnAstro = document.getElementById('btn-view-astronomy');
+
+  if (btnAngler && btnAstro) {
+    btnAngler.addEventListener('click', () => {
+      activeViewMode = 'angler';
+      btnAngler.classList.add('active');
+      btnAstro.classList.remove('active');
+      document.body.classList.remove('mode-astronomy');
+      document.body.classList.add('mode-angler');
+      document.getElementById('condition-panel').scrollIntoView({ behavior: 'smooth' });
+    });
+
+    btnAstro.addEventListener('click', () => {
+      activeViewMode = 'astronomy';
+      btnAstro.classList.add('active');
+      btnAngler.classList.remove('active');
+      document.body.classList.remove('mode-angler');
+      document.body.classList.add('mode-astronomy');
+      document.getElementById('section-moon').scrollIntoView({ behavior: 'smooth' });
+    });
+  }
+
+  // Sea Region Toggles
+  const btnMed = document.getElementById('med-mode-btn');
+  const btnMy = document.getElementById('malaysia-mode-btn');
+
+  if (btnMed && btnMy) {
+    btnMed.addEventListener('click', () => {
+      activeSeaMode = 'med';
+      btnMed.classList.add('active');
+      btnMy.classList.remove('active');
+      fetchLiveInternetMarineData('med').then(() => updateView(currentDate));
+    });
+
+    btnMy.addEventListener('click', () => {
+      activeSeaMode = 'malaysia';
+      btnMy.classList.add('active');
+      btnMed.classList.remove('active');
+      fetchLiveInternetMarineData('malaysia').then(() => updateView(currentDate));
+    });
+  }
+
+  // Depth Filter Buttons
+  document.querySelectorAll('.depth-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.depth-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      activeDepthFilter = btn.dataset.depth;
+      renderSeasonalSpeciesForDate(currentDate);
+    });
+  });
+
+  // Date Picker
+  const dateInput = document.getElementById('date-input');
+  if (dateInput) {
+    dateInput.addEventListener('change', (e) => {
+      if (e.target.value) {
+        updateView(new Date(e.target.value));
+      }
+    });
+  }
+
+  // Today Button
+  const todayBtn = document.getElementById('today-btn');
+  if (todayBtn) {
+    todayBtn.addEventListener('click', () => {
+      isCrimsonMode = false;
+      document.body.classList.remove('crimson-theme');
+      document.getElementById('crimson-sub-controls').classList.add('hidden');
+      updateView(new Date());
+    });
+  }
+
+  // 30-Day Timelapse Slider
+  const cycleSlider = document.getElementById('cycle-slider');
+  if (cycleSlider) {
+    cycleSlider.addEventListener('input', (e) => {
+      const val = parseFloat(e.target.value);
+      const newD = new Date(KNOWN_NEW_MOON.getTime() + val * 24 * 60 * 60 * 1000);
+      updateView(newD);
+    });
+  }
+
+  // Timelapse Play/Pause Button
+  const timelapseBtn = document.getElementById('timelapse-btn');
+  if (timelapseBtn) {
+    timelapseBtn.addEventListener('click', () => {
+      if (isTimelapsePlaying) {
+        clearInterval(timelapseTimer);
+        isTimelapsePlaying = false;
+        timelapseBtn.textContent = '▶ Play Timelapse';
+      } else {
+        isTimelapsePlaying = true;
+        timelapseBtn.textContent = '⏸️ Pause';
+        timelapseTimer = setInterval(() => {
+          currentDate = new Date(currentDate.getTime() + 12 * 60 * 60 * 1000);
+          updateView(currentDate);
+        }, 150);
+      }
+    });
+  }
+
+  // Catch Journal Save
+  const saveBtn = document.getElementById('save-journal-btn');
+  const journalInput = document.getElementById('journal-input');
+  const journalStatus = document.getElementById('journal-status');
+
+  if (journalInput) {
+    journalInput.value = localStorage.getItem('luna_angler_journal') || '';
+  }
+
+  if (saveBtn) {
+    saveBtn.addEventListener('click', () => {
+      localStorage.setItem('luna_angler_journal', journalInput.value);
+      journalStatus.textContent = '✅ Log Saved!';
+      setTimeout(() => journalStatus.textContent = '', 3000);
+    });
+  }
+
+  // Mobile Bottom Nav Tabs
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const targetId = btn.dataset.target;
+      document.getElementById(targetId)?.scrollIntoView({ behavior: 'smooth' });
+    });
+  });
+}
+
+// Initialize Application
 document.addEventListener('DOMContentLoaded', () => {
-  initStarfield();
+  initCosmicCanvas();
+  setupEvents();
   loadDatabases();
 });
